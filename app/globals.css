@@ -5,19 +5,23 @@
 @tailwind utilities;
 
 :root {
-  /* Synthwave Palette */
-  --hot-pink: #ff2d95;
-  --cyan: #00f5d4;
-  --electric-purple: #b14aed;
-  --sunset-orange: #ff6b35;
-  --deep-purple: #0d0221;
-  --dark-teal: #0f1b2e;
-  --neon-blue: #00b4d8;
+  /* Vibrant Synthwave Palette - BRIGHTER */
+  --hot-pink: #ff2a6d;
+  --neon-pink: #ff6b9d;
+  --cyan: #05ffa1;
+  --neon-cyan: #00fff5;
+  --electric-purple: #d147ff;
+  --sunset-orange: #ff9f1c;
+  --sunset-yellow: #ffe66d;
+  --sky-purple: #1a0533;
+  --mid-purple: #4a1259;
+  --horizon-pink: #ff3864;
   
-  /* Glow colors */
-  --glow-pink: rgba(255, 45, 149, 0.6);
-  --glow-cyan: rgba(0, 245, 212, 0.6);
-  --glow-purple: rgba(177, 74, 237, 0.5);
+  /* Glow colors - MORE INTENSE */
+  --glow-pink: rgba(255, 42, 109, 0.8);
+  --glow-cyan: rgba(5, 255, 161, 0.8);
+  --glow-purple: rgba(209, 71, 255, 0.7);
+  --glow-orange: rgba(255, 159, 28, 0.7);
 }
 
 @layer base {
@@ -31,59 +35,64 @@
 }
 
 @layer components {
-  /* Glassmorphism with synthwave tint */
+  /* Glassmorphism - LIGHTER, more visible */
   .glass {
-    @apply backdrop-blur-xl border border-white/10;
+    @apply backdrop-blur-md border border-white/20;
     background: linear-gradient(
       135deg,
-      rgba(177, 74, 237, 0.1) 0%,
-      rgba(13, 2, 33, 0.8) 50%,
-      rgba(0, 245, 212, 0.05) 100%
+      rgba(255, 42, 109, 0.15) 0%,
+      rgba(26, 5, 51, 0.7) 50%,
+      rgba(5, 255, 161, 0.1) 100%
     );
   }
   
-  /* Neon glow effects */
+  .glass-light {
+    @apply backdrop-blur-md border border-white/30;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 107, 157, 0.2) 0%,
+      rgba(74, 18, 89, 0.6) 50%,
+      rgba(0, 255, 245, 0.15) 100%
+    );
+  }
+  
+  /* Neon glow effects - STRONGER */
   .neon-pink {
     box-shadow: 
-      0 0 20px var(--glow-pink),
-      0 0 40px var(--glow-pink),
-      inset 0 0 20px rgba(255, 45, 149, 0.1);
+      0 0 10px var(--glow-pink),
+      0 0 30px var(--glow-pink),
+      0 0 60px var(--glow-pink),
+      inset 0 0 30px rgba(255, 42, 109, 0.2);
   }
   
   .neon-cyan {
     box-shadow: 
-      0 0 20px var(--glow-cyan),
-      0 0 40px var(--glow-cyan),
-      inset 0 0 20px rgba(0, 245, 212, 0.1);
+      0 0 10px var(--glow-cyan),
+      0 0 30px var(--glow-cyan),
+      0 0 60px var(--glow-cyan),
+      inset 0 0 30px rgba(5, 255, 161, 0.2);
   }
   
   .neon-purple {
     box-shadow: 
-      0 0 20px var(--glow-purple),
-      0 0 40px var(--glow-purple),
-      inset 0 0 20px rgba(177, 74, 237, 0.1);
+      0 0 10px var(--glow-purple),
+      0 0 30px var(--glow-purple),
+      0 0 60px var(--glow-purple),
+      inset 0 0 30px rgba(209, 71, 255, 0.2);
   }
   
-  /* Animated neon border */
-  .neon-border {
-    position: relative;
-    border: 1px solid transparent;
-    background: linear-gradient(var(--deep-purple), var(--deep-purple)) padding-box,
-                linear-gradient(135deg, var(--hot-pink), var(--cyan), var(--electric-purple)) border-box;
-  }
-  
+  /* Animated neon border - MORE VISIBLE */
   .neon-border-animated {
     position: relative;
     border: 2px solid transparent;
-    background: linear-gradient(var(--deep-purple), var(--deep-purple)) padding-box,
-                linear-gradient(var(--border-angle, 0deg), var(--hot-pink), var(--cyan), var(--electric-purple), var(--hot-pink)) border-box;
-    animation: border-rotate 4s linear infinite;
+    background: 
+      linear-gradient(rgba(26, 5, 51, 0.8), rgba(26, 5, 51, 0.8)) padding-box,
+      linear-gradient(var(--border-angle, 0deg), var(--hot-pink), var(--cyan), var(--electric-purple), var(--hot-pink)) border-box;
+    animation: border-rotate 3s linear infinite;
   }
   
   @keyframes border-rotate {
-    to {
-      --border-angle: 360deg;
-    }
+    to { --border-angle: 360deg; }
   }
   
   @property --border-angle {
@@ -92,125 +101,334 @@
     inherits: false;
   }
   
-  /* Gradient text - synthwave style */
+  /* Gradient text - VIBRANT */
   .gradient-text {
     @apply font-black;
-    background: linear-gradient(135deg, var(--hot-pink) 0%, var(--cyan) 50%, var(--electric-purple) 100%);
+    background: linear-gradient(135deg, var(--hot-pink) 0%, var(--sunset-orange) 50%, var(--sunset-yellow) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 0 40px var(--glow-pink);
+    filter: drop-shadow(0 0 30px var(--glow-pink));
   }
   
   .gradient-text-alt {
     @apply font-black;
-    background: linear-gradient(90deg, var(--cyan) 0%, var(--hot-pink) 100%);
+    background: linear-gradient(90deg, var(--neon-cyan) 0%, var(--cyan) 50%, var(--electric-purple) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 0 30px var(--glow-cyan));
   }
   
-  /* Glowing text */
+  /* Glowing text - STRONGER */
   .glow-text-pink {
     text-shadow: 
       0 0 10px var(--glow-pink),
-      0 0 20px var(--glow-pink),
-      0 0 40px var(--glow-pink);
+      0 0 30px var(--glow-pink),
+      0 0 50px var(--glow-pink);
   }
   
   .glow-text-cyan {
     text-shadow: 
       0 0 10px var(--glow-cyan),
-      0 0 20px var(--glow-cyan),
-      0 0 40px var(--glow-cyan);
+      0 0 30px var(--glow-cyan),
+      0 0 50px var(--glow-cyan);
+  }
+
+  /* ============================================
+     LAYERED SYNTHWAVE BACKGROUND
+     ============================================ */
+  
+  /* Layer 1: Sky gradient - VIBRANT */
+  .synthwave-sky {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      #0f0525 0%,
+      #1a0a3e 15%,
+      #3d1259 30%,
+      #6b2372 45%,
+      #b73e6e 60%,
+      #ff6b6b 75%,
+      #ffaa5c 90%,
+      #ffe66d 100%
+    );
+    z-index: -50;
   }
   
-  /* Synthwave grid floor */
-  .synthwave-grid {
+  /* Layer 2: Large glowing sun */
+  .synthwave-sun {
+    position: fixed;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: linear-gradient(
+      180deg,
+      #ffe66d 0%,
+      #ffcc47 20%,
+      #ff9a3c 40%,
+      #ff6b6b 60%,
+      #ff4081 80%,
+      #e040fb 100%
+    );
+    box-shadow:
+      0 0 100px 50px rgba(255, 159, 28, 0.6),
+      0 0 200px 100px rgba(255, 107, 107, 0.4),
+      0 0 300px 150px rgba(255, 64, 129, 0.2);
+    z-index: -45;
+    animation: sun-pulse 4s ease-in-out infinite;
+  }
+  
+  /* Sun horizontal lines (retro effect) */
+  .synthwave-sun::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 8px,
+      rgba(26, 5, 51, 0.3) 8px,
+      rgba(26, 5, 51, 0.3) 12px
+    );
+    mask-image: linear-gradient(to bottom, transparent 0%, black 50%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 50%);
+  }
+  
+  @keyframes sun-pulse {
+    0%, 100% { 
+      transform: translateX(-50%) scale(1);
+      filter: brightness(1);
+    }
+    50% { 
+      transform: translateX(-50%) scale(1.02);
+      filter: brightness(1.1);
+    }
+  }
+  
+  /* Layer 3: Wireframe mountains */
+  .synthwave-mountains {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 40vh;
+    height: 50vh;
+    z-index: -40;
+    overflow: hidden;
+  }
+  
+  .mountain-left, .mountain-right, .mountain-center {
+    position: absolute;
+    bottom: 20%;
+    width: 0;
+    height: 0;
+    border-style: solid;
+  }
+  
+  .mountain-left {
+    left: 5%;
+    border-width: 0 200px 350px 200px;
+    border-color: transparent transparent transparent transparent;
+    filter: drop-shadow(0 0 2px var(--neon-cyan));
+  }
+  
+  .mountain-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -200px;
+    width: 400px;
+    height: 350px;
     background: 
-      linear-gradient(to bottom, transparent 0%, var(--deep-purple) 100%),
       repeating-linear-gradient(
         90deg,
-        transparent,
-        transparent 100px,
-        var(--hot-pink) 100px,
-        var(--hot-pink) 101px
+        transparent 0px,
+        transparent 28px,
+        var(--neon-cyan) 28px,
+        var(--neon-cyan) 30px
       ),
       repeating-linear-gradient(
         0deg,
-        transparent,
-        transparent 50px,
-        var(--cyan) 50px,
-        var(--cyan) 51px
+        transparent 0px,
+        transparent 28px,
+        var(--neon-cyan) 28px,
+        var(--neon-cyan) 30px
       );
-    transform: perspective(500px) rotateX(60deg);
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    opacity: 0.6;
+  }
+  
+  .mountain-center {
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 300px 450px 300px;
+    border-color: transparent transparent transparent transparent;
+    filter: drop-shadow(0 0 3px var(--electric-purple));
+  }
+  
+  .mountain-center::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -300px;
+    width: 600px;
+    height: 450px;
+    background: 
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 38px,
+        var(--electric-purple) 38px,
+        var(--electric-purple) 40px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 38px,
+        var(--electric-purple) 38px,
+        var(--electric-purple) 40px
+      );
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    opacity: 0.5;
+  }
+  
+  .mountain-right {
+    right: 0%;
+    border-width: 0 250px 380px 250px;
+    border-color: transparent transparent transparent transparent;
+    filter: drop-shadow(0 0 2px var(--hot-pink));
+  }
+  
+  .mountain-right::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -250px;
+    width: 500px;
+    height: 380px;
+    background: 
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 33px,
+        var(--hot-pink) 33px,
+        var(--hot-pink) 35px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 33px,
+        var(--hot-pink) 33px,
+        var(--hot-pink) 35px
+      );
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    opacity: 0.5;
+  }
+  
+  /* Layer 4: Grid floor with perspective */
+  .synthwave-grid {
+    position: fixed;
+    bottom: 0;
+    left: -50%;
+    right: -50%;
+    height: 50vh;
+    z-index: -35;
+    background: 
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent calc(50% - 1px),
+        var(--hot-pink) calc(50% - 1px),
+        var(--hot-pink) calc(50% + 1px),
+        transparent calc(50% + 1px),
+        transparent 100%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        var(--neon-cyan) 0px,
+        var(--neon-cyan) 2px,
+        transparent 2px,
+        transparent 60px
+      );
+    background-size: 80px 60px;
+    transform: perspective(400px) rotateX(75deg) translateY(50%);
     transform-origin: center top;
-    opacity: 0.3;
-    pointer-events: none;
-    animation: grid-scroll 20s linear infinite;
+    opacity: 0.7;
+    animation: grid-scroll 15s linear infinite;
+    filter: drop-shadow(0 0 10px var(--glow-pink));
   }
   
   @keyframes grid-scroll {
-    0% {
-      background-position: 0 0, 0 0, 0 0;
-    }
-    100% {
-      background-position: 0 0, 0 0, 0 500px;
-    }
+    0% { background-position: 0 0; }
+    100% { background-position: 0 -600px; }
   }
   
-  /* Sun glow background */
-  .sun-glow {
+  /* Layer 5: Horizon glow */
+  .horizon-glow {
     position: fixed;
-    top: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 300px;
-    background: radial-gradient(
-      ellipse at center bottom,
-      var(--hot-pink) 0%,
-      rgba(255, 107, 53, 0.5) 30%,
-      transparent 70%
+    bottom: 25%;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(
+      0deg,
+      transparent 0%,
+      rgba(255, 107, 157, 0.4) 30%,
+      rgba(255, 64, 129, 0.6) 50%,
+      rgba(255, 107, 157, 0.4) 70%,
+      transparent 100%
     );
-    opacity: 0.4;
-    pointer-events: none;
-    filter: blur(40px);
-    animation: sun-pulse 4s ease-in-out infinite;
+    z-index: -38;
+    filter: blur(30px);
   }
   
-  @keyframes sun-pulse {
-    0%, 100% {
-      opacity: 0.4;
-      transform: translateX(-50%) scale(1);
-    }
-    50% {
-      opacity: 0.6;
-      transform: translateX(-50%) scale(1.05);
-    }
+  /* Layer 6: Stars */
+  .stars {
+    position: fixed;
+    inset: 0;
+    z-index: -48;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, white, transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 90px 40px, white, transparent),
+      radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 230px 80px, white, transparent),
+      radial-gradient(2px 2px at 300px 150px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 350px 50px, white, transparent),
+      radial-gradient(2px 2px at 420px 180px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 500px 90px, white, transparent),
+      radial-gradient(2px 2px at 580px 130px, white, transparent);
+    background-size: 600px 200px;
+    animation: twinkle 4s ease-in-out infinite;
   }
   
-  /* Floating particles */
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  
+  /* Floating particles - BRIGHTER */
   .particles {
     position: fixed;
     inset: 0;
     overflow: hidden;
     pointer-events: none;
+    z-index: -30;
   }
   
   .particle {
     position: absolute;
-    width: 4px;
-    height: 4px;
-    background: var(--cyan);
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     opacity: 0;
-    animation: float-up 8s ease-in-out infinite;
+    animation: float-up 10s ease-in-out infinite;
+    filter: blur(1px);
   }
   
   @keyframes float-up {
@@ -218,25 +436,21 @@
       opacity: 0;
       transform: translateY(100vh) scale(0);
     }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
     100% {
       opacity: 0;
-      transform: translateY(-100vh) scale(1);
+      transform: translateY(-100vh) scale(1.5);
     }
   }
   
-  /* Card hover effects */
+  /* Card hover effects - MORE DRAMATIC */
   .card-hover {
     @apply transition-all duration-300;
   }
   
   .card-hover:hover {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-10px) scale(1.03);
   }
   
   /* Pulse animation for live indicator */
@@ -246,34 +460,36 @@
   
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 5px var(--glow-cyan), 0 0 10px var(--glow-cyan);
+      box-shadow: 0 0 10px var(--glow-cyan), 0 0 20px var(--glow-cyan);
     }
     50% {
-      box-shadow: 0 0 20px var(--glow-cyan), 0 0 40px var(--glow-cyan);
+      box-shadow: 0 0 30px var(--glow-cyan), 0 0 60px var(--glow-cyan);
     }
   }
   
-  /* Groovy button */
+  /* Groovy button - MORE VIBRANT */
   .btn-groovy {
     @apply relative overflow-hidden font-bold;
-    background: linear-gradient(135deg, var(--hot-pink) 0%, var(--electric-purple) 50%, var(--cyan) 100%);
+    background: linear-gradient(135deg, var(--hot-pink) 0%, var(--sunset-orange) 50%, var(--sunset-yellow) 100%);
     background-size: 200% 200%;
     animation: gradient-shift 3s ease infinite;
     transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
   }
   
   .btn-groovy:hover {
     transform: scale(1.05);
     box-shadow: 
-      0 0 30px var(--glow-pink),
-      0 0 60px var(--glow-cyan);
+      0 0 20px var(--glow-pink),
+      0 0 40px var(--glow-orange),
+      0 0 60px var(--glow-pink);
   }
   
   .btn-groovy::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
     transform: translateX(-100%);
   }
   
@@ -282,86 +498,41 @@
   }
   
   @keyframes shimmer {
-    to {
-      transform: translateX(100%);
-    }
+    to { transform: translateX(100%); }
   }
   
   @keyframes gradient-shift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
   
-  /* Scanline effect */
-  .scanlines::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.1) 2px,
-      rgba(0, 0, 0, 0.1) 4px
-    );
-    pointer-events: none;
-    opacity: 0.3;
-  }
-  
-  /* Input styling */
+  /* Input styling - BRIGHTER */
   .input-synthwave {
-    @apply bg-black/50 border-2 transition-all duration-300;
-    border-color: rgba(0, 245, 212, 0.3);
+    @apply bg-black/40 border-2 transition-all duration-300;
+    border-color: rgba(5, 255, 161, 0.4);
   }
   
   .input-synthwave:focus {
-    border-color: var(--cyan);
-    box-shadow: 0 0 20px var(--glow-cyan);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 20px var(--glow-cyan), 0 0 40px var(--glow-cyan);
     outline: none;
   }
   
-  /* Status card animations */
-  .status-success {
-    border-color: var(--cyan) !important;
-    animation: success-pulse 1s ease;
-  }
-  
-  @keyframes success-pulse {
-    0% {
-      box-shadow: 0 0 0 0 var(--glow-cyan);
-    }
-    70% {
-      box-shadow: 0 0 0 20px transparent;
-    }
-    100% {
-      box-shadow: 0 0 0 0 transparent;
-    }
-  }
-  
-  /* Scroll behavior */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Custom scrollbar */
+  /* Custom scrollbar - MATCHING */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
   }
   
   ::-webkit-scrollbar-track {
-    background: var(--deep-purple);
+    background: rgba(26, 5, 51, 0.8);
   }
   
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(var(--hot-pink), var(--cyan));
-    border-radius: 4px;
+    background: linear-gradient(var(--hot-pink), var(--sunset-orange));
+    border-radius: 5px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(var(--cyan), var(--hot-pink));
+    background: linear-gradient(var(--neon-cyan), var(--electric-purple));
   }
 }

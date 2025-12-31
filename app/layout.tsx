@@ -8,14 +8,13 @@ export const metadata: Metadata = {
 }
 
 function Particles() {
-  // Generate 20 particles with random positions and delays
-  const particles = Array.from({ length: 20 }, (_, i) => ({
+  const particles = Array.from({ length: 30 }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
-    delay: `${Math.random() * 8}s`,
-    duration: `${6 + Math.random() * 4}s`,
-    size: `${2 + Math.random() * 4}px`,
-    color: i % 3 === 0 ? '#ff2d95' : i % 3 === 1 ? '#00f5d4' : '#b14aed',
+    delay: `${Math.random() * 10}s`,
+    duration: `${8 + Math.random() * 6}s`,
+    size: `${4 + Math.random() * 6}px`,
+    color: i % 4 === 0 ? '#ff2a6d' : i % 4 === 1 ? '#05ffa1' : i % 4 === 2 ? '#d147ff' : '#ff9f1c',
   }))
 
   return (
@@ -31,9 +30,20 @@ function Particles() {
             backgroundColor: p.color,
             animationDelay: p.delay,
             animationDuration: p.duration,
+            boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}`,
           }}
         />
       ))}
+    </div>
+  )
+}
+
+function WireframeMountains() {
+  return (
+    <div className="synthwave-mountains">
+      <div className="mountain-left" />
+      <div className="mountain-center" />
+      <div className="mountain-right" />
     </div>
   )
 }
@@ -46,33 +56,31 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen text-white font-mono overflow-x-hidden">
-        {/* Synthwave background layers */}
-        <div 
-          className="fixed inset-0 -z-30"
-          style={{
-            background: 'linear-gradient(180deg, #0d0221 0%, #1a0a2e 40%, #150a25 70%, #0f1b2e 100%)',
-          }}
-        />
+        {/* Layer 1: Vibrant sky gradient */}
+        <div className="synthwave-sky" />
         
-        {/* Sun glow effect */}
-        <div className="sun-glow" />
+        {/* Layer 2: Twinkling stars (only visible at top) */}
+        <div className="stars" />
         
-        {/* Floating particles */}
-        <Particles />
+        {/* Layer 3: Large glowing sun */}
+        <div className="synthwave-sun" />
         
-        {/* Synthwave grid floor */}
+        {/* Layer 4: Horizon glow line */}
+        <div className="horizon-glow" />
+        
+        {/* Layer 5: Wireframe mountains */}
+        <WireframeMountains />
+        
+        {/* Layer 6: Perspective grid floor */}
         <div className="synthwave-grid" />
         
-        {/* Subtle scanlines overlay */}
-        <div 
-          className="fixed inset-0 -z-10 pointer-events-none opacity-20"
-          style={{
-            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px)',
-          }}
-        />
+        {/* Layer 7: Floating particles */}
+        <Particles />
         
         <Providers>
-          {children}
+          <div className="relative z-10">
+            {children}
+          </div>
         </Providers>
       </body>
     </html>

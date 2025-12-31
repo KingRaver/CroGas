@@ -17,44 +17,44 @@ export default function StatsGrid({ data }: StatsGridProps) {
       value: `${data?.croBalance?.toFixed(2) || '49.10'}`,
       unit: 'CRO',
       icon: Fuel,
-      color: 'cyan',
       glowClass: 'neon-cyan',
-      iconBg: 'bg-cyan-500/20',
-      textColor: 'text-cyan-400',
-      borderColor: 'border-cyan-500/30',
+      iconBg: 'bg-cyan-400/20',
+      textColor: 'text-cyan-300',
+      borderColor: 'border-cyan-400/50',
+      barColor: 'from-cyan-400 to-cyan-200',
     },
     {
       label: 'USDC Earned',
       value: `$${data?.usdcEarned?.toFixed(2) || '12.34'}`,
       unit: '',
       icon: DollarSign,
-      color: 'pink',
       glowClass: 'neon-pink',
-      iconBg: 'bg-pink-500/20',
-      textColor: 'text-pink-400',
-      borderColor: 'border-pink-500/30',
+      iconBg: 'bg-pink-400/20',
+      textColor: 'text-pink-300',
+      borderColor: 'border-pink-400/50',
+      barColor: 'from-pink-400 to-orange-300',
     },
     {
       label: 'Gas Price',
       value: data?.gasPrice || '25',
       unit: 'gwei',
       icon: Zap,
-      color: 'purple',
       glowClass: 'neon-purple',
-      iconBg: 'bg-purple-500/20',
-      textColor: 'text-purple-400',
-      borderColor: 'border-purple-500/30',
+      iconBg: 'bg-purple-400/20',
+      textColor: 'text-purple-300',
+      borderColor: 'border-purple-400/50',
+      barColor: 'from-purple-400 to-pink-300',
     },
     {
       label: 'Tx Processed',
       value: data?.txCount?.toString() || '127',
       unit: '',
       icon: Activity,
-      color: 'orange',
       glowClass: '',
-      iconBg: 'bg-orange-500/20',
-      textColor: 'text-orange-400',
-      borderColor: 'border-orange-500/30',
+      iconBg: 'bg-orange-400/20',
+      textColor: 'text-orange-300',
+      borderColor: 'border-orange-400/50',
+      barColor: 'from-orange-400 to-yellow-300',
     },
   ]
 
@@ -64,29 +64,27 @@ export default function StatsGrid({ data }: StatsGridProps) {
         <div
           key={stat.label}
           className={`
-            glass p-6 rounded-2xl border ${stat.borderColor} ${stat.glowClass}
+            glass-light p-6 rounded-2xl border-2 ${stat.borderColor} ${stat.glowClass}
             card-hover cursor-default
-            animate-in fade-in slide-in-from-bottom-4
           `}
           style={{ 
             animationDelay: `${index * 100}ms`,
-            animationFillMode: 'backwards'
           }}
         >
           <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
-              <stat.icon className={`w-7 h-7 ${stat.textColor}`} />
+            <div className={`w-14 h-14 ${stat.iconBg} rounded-xl flex items-center justify-center backdrop-blur-sm`}>
+              <stat.icon className={`w-7 h-7 ${stat.textColor}`} style={{ filter: 'drop-shadow(0 0 8px currentColor)' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">
+              <p className="text-xs text-white/60 uppercase tracking-wider font-medium mb-1">
                 {stat.label}
               </p>
               <div className="flex items-baseline gap-2">
-                <span className={`text-2xl font-black ${stat.textColor} tracking-tight`}>
+                <span className={`text-2xl font-black ${stat.textColor} tracking-tight`} style={{ filter: 'drop-shadow(0 0 10px currentColor)' }}>
                   {stat.value}
                 </span>
                 {stat.unit && (
-                  <span className="text-sm text-gray-500 font-medium">
+                  <span className="text-sm text-white/50 font-medium">
                     {stat.unit}
                   </span>
                 )}
@@ -95,17 +93,12 @@ export default function StatsGrid({ data }: StatsGridProps) {
           </div>
           
           {/* Animated bottom bar */}
-          <div className="mt-4 h-1 rounded-full bg-black/50 overflow-hidden">
+          <div className="mt-4 h-1.5 rounded-full bg-black/30 overflow-hidden">
             <div 
-              className={`h-full rounded-full ${
-                stat.color === 'cyan' ? 'bg-gradient-to-r from-cyan-500 to-cyan-300' :
-                stat.color === 'pink' ? 'bg-gradient-to-r from-pink-500 to-pink-300' :
-                stat.color === 'purple' ? 'bg-gradient-to-r from-purple-500 to-purple-300' :
-                'bg-gradient-to-r from-orange-500 to-orange-300'
-              }`}
+              className={`h-full rounded-full bg-gradient-to-r ${stat.barColor}`}
               style={{ 
-                width: `${Math.min(100, (index + 1) * 25)}%`,
-                animation: 'pulse 2s ease-in-out infinite'
+                width: `${60 + (index * 10)}%`,
+                boxShadow: '0 0 10px currentColor',
               }}
             />
           </div>

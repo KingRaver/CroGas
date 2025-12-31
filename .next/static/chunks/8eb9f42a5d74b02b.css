@@ -1,2 +1,0 @@
-@import "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap";
-@tailwind base;@tailwind components;@tailwind utilities;@layer base{@apply font-mono;}@layer components{@apply backdrop-blur-xl bg-black/30 border border-white/20;.neon-green{box-shadow:0 0 30px #00ff8880,inset 0 0 20px #00ff881a}@apply bg-gradient-to-r from-green-400 via-blue-400 to-purple-500 bg-clip-text text-transparent font-black;}

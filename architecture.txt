@@ -1,0 +1,22 @@
+crogas_frontend/
+├── app/
+│   ├── dashboard/          # /dashboard
+│   │   └── page.tsx
+│   ├── execute/            # /execute  
+│   │   └── page.tsx
+│   ├── api/                # API proxy
+│   │   └── meta/route.ts
+│   ├── layout.tsx
+│   └── page.tsx            # / Home page
+├── components/
+│   ├── gas-pump-3d.tsx     # Spinning 3D pump
+│   ├── stats-grid.tsx      # CRO/USDC metrics
+│   └── meta-tx-form.tsx    # Execute form
+├── lib/
+│   ├── cronos.ts           # Chain + wagmi
+│   └── api.ts              # Backend calls
+├── app/globals.css
+├── next.config.mjs
+├── tailwind.config.ts
+├── package.json
+└── vercel.json

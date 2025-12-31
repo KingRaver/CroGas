@@ -1,0 +1,367 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Orbitron:wght@400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Synthwave Palette */
+  --hot-pink: #ff2d95;
+  --cyan: #00f5d4;
+  --electric-purple: #b14aed;
+  --sunset-orange: #ff6b35;
+  --deep-purple: #0d0221;
+  --dark-teal: #0f1b2e;
+  --neon-blue: #00b4d8;
+  
+  /* Glow colors */
+  --glow-pink: rgba(255, 45, 149, 0.6);
+  --glow-cyan: rgba(0, 245, 212, 0.6);
+  --glow-purple: rgba(177, 74, 237, 0.5);
+}
+
+@layer base {
+  * {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  h1, h2, h3, .display-font {
+    font-family: 'Orbitron', sans-serif;
+  }
+}
+
+@layer components {
+  /* Glassmorphism with synthwave tint */
+  .glass {
+    @apply backdrop-blur-xl border border-white/10;
+    background: linear-gradient(
+      135deg,
+      rgba(177, 74, 237, 0.1) 0%,
+      rgba(13, 2, 33, 0.8) 50%,
+      rgba(0, 245, 212, 0.05) 100%
+    );
+  }
+  
+  /* Neon glow effects */
+  .neon-pink {
+    box-shadow: 
+      0 0 20px var(--glow-pink),
+      0 0 40px var(--glow-pink),
+      inset 0 0 20px rgba(255, 45, 149, 0.1);
+  }
+  
+  .neon-cyan {
+    box-shadow: 
+      0 0 20px var(--glow-cyan),
+      0 0 40px var(--glow-cyan),
+      inset 0 0 20px rgba(0, 245, 212, 0.1);
+  }
+  
+  .neon-purple {
+    box-shadow: 
+      0 0 20px var(--glow-purple),
+      0 0 40px var(--glow-purple),
+      inset 0 0 20px rgba(177, 74, 237, 0.1);
+  }
+  
+  /* Animated neon border */
+  .neon-border {
+    position: relative;
+    border: 1px solid transparent;
+    background: linear-gradient(var(--deep-purple), var(--deep-purple)) padding-box,
+                linear-gradient(135deg, var(--hot-pink), var(--cyan), var(--electric-purple)) border-box;
+  }
+  
+  .neon-border-animated {
+    position: relative;
+    border: 2px solid transparent;
+    background: linear-gradient(var(--deep-purple), var(--deep-purple)) padding-box,
+                linear-gradient(var(--border-angle, 0deg), var(--hot-pink), var(--cyan), var(--electric-purple), var(--hot-pink)) border-box;
+    animation: border-rotate 4s linear infinite;
+  }
+  
+  @keyframes border-rotate {
+    to {
+      --border-angle: 360deg;
+    }
+  }
+  
+  @property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  
+  /* Gradient text - synthwave style */
+  .gradient-text {
+    @apply font-black;
+    background: linear-gradient(135deg, var(--hot-pink) 0%, var(--cyan) 50%, var(--electric-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px var(--glow-pink);
+  }
+  
+  .gradient-text-alt {
+    @apply font-black;
+    background: linear-gradient(90deg, var(--cyan) 0%, var(--hot-pink) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Glowing text */
+  .glow-text-pink {
+    text-shadow: 
+      0 0 10px var(--glow-pink),
+      0 0 20px var(--glow-pink),
+      0 0 40px var(--glow-pink);
+  }
+  
+  .glow-text-cyan {
+    text-shadow: 
+      0 0 10px var(--glow-cyan),
+      0 0 20px var(--glow-cyan),
+      0 0 40px var(--glow-cyan);
+  }
+  
+  /* Synthwave grid floor */
+  .synthwave-grid {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40vh;
+    background: 
+      linear-gradient(to bottom, transparent 0%, var(--deep-purple) 100%),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 100px,
+        var(--hot-pink) 100px,
+        var(--hot-pink) 101px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 50px,
+        var(--cyan) 50px,
+        var(--cyan) 51px
+      );
+    transform: perspective(500px) rotateX(60deg);
+    transform-origin: center top;
+    opacity: 0.3;
+    pointer-events: none;
+    animation: grid-scroll 20s linear infinite;
+  }
+  
+  @keyframes grid-scroll {
+    0% {
+      background-position: 0 0, 0 0, 0 0;
+    }
+    100% {
+      background-position: 0 0, 0 0, 0 500px;
+    }
+  }
+  
+  /* Sun glow background */
+  .sun-glow {
+    position: fixed;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(
+      ellipse at center bottom,
+      var(--hot-pink) 0%,
+      rgba(255, 107, 53, 0.5) 30%,
+      transparent 70%
+    );
+    opacity: 0.4;
+    pointer-events: none;
+    filter: blur(40px);
+    animation: sun-pulse 4s ease-in-out infinite;
+  }
+  
+  @keyframes sun-pulse {
+    0%, 100% {
+      opacity: 0.4;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: translateX(-50%) scale(1.05);
+    }
+  }
+  
+  /* Floating particles */
+  .particles {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--cyan);
+    border-radius: 50%;
+    opacity: 0;
+    animation: float-up 8s ease-in-out infinite;
+  }
+  
+  @keyframes float-up {
+    0% {
+      opacity: 0;
+      transform: translateY(100vh) scale(0);
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-100vh) scale(1);
+    }
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
+  
+  /* Pulse animation for live indicator */
+  .pulse-live {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px var(--glow-cyan), 0 0 10px var(--glow-cyan);
+    }
+    50% {
+      box-shadow: 0 0 20px var(--glow-cyan), 0 0 40px var(--glow-cyan);
+    }
+  }
+  
+  /* Groovy button */
+  .btn-groovy {
+    @apply relative overflow-hidden font-bold;
+    background: linear-gradient(135deg, var(--hot-pink) 0%, var(--electric-purple) 50%, var(--cyan) 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-groovy:hover {
+    transform: scale(1.05);
+    box-shadow: 
+      0 0 30px var(--glow-pink),
+      0 0 60px var(--glow-cyan);
+  }
+  
+  .btn-groovy::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: translateX(-100%);
+  }
+  
+  .btn-groovy:hover::before {
+    animation: shimmer 0.6s ease;
+  }
+  
+  @keyframes shimmer {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  /* Scanline effect */
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px
+    );
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  
+  /* Input styling */
+  .input-synthwave {
+    @apply bg-black/50 border-2 transition-all duration-300;
+    border-color: rgba(0, 245, 212, 0.3);
+  }
+  
+  .input-synthwave:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px var(--glow-cyan);
+    outline: none;
+  }
+  
+  /* Status card animations */
+  .status-success {
+    border-color: var(--cyan) !important;
+    animation: success-pulse 1s ease;
+  }
+  
+  @keyframes success-pulse {
+    0% {
+      box-shadow: 0 0 0 0 var(--glow-cyan);
+    }
+    70% {
+      box-shadow: 0 0 0 20px transparent;
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+  
+  /* Scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--deep-purple);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--hot-pink), var(--cyan));
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(var(--cyan), var(--hot-pink));
+  }
+}

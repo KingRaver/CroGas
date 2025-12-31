@@ -26,7 +26,7 @@ export default function HomePage() {
           <div className="glass px-6 py-3 rounded-full border border-cyan-500/30 flex items-center gap-3 pulse-live">
             <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
             <span className="text-cyan-400 font-bold text-sm tracking-wider">
-              🛢️ LIVE - Cronos Testnet x402
+              🛢️ LIVE - Cronos x402
             </span>
           </div>
         </div>

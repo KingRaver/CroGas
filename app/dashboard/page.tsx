@@ -1,7 +1,9 @@
 'use client'
 import StatsGrid from '@/components/stats-grid'
 import MetaTxForm from '@/components/meta-tx-form'
-import { ArrowLeft, Settings, Bell } from 'lucide-react'
+import SettingsDropdown from '@/components/settings-dropdown'
+import NotificationsDropdown from '@/components/notifications-dropdown'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 function DecoDivider() {
@@ -32,12 +34,8 @@ export default function DashboardPage() {
           </Link>
           
           <div className="flex items-center gap-3">
-            <button className="w-10 h-10 flex items-center justify-center border-2 border-[#d9d9d9] hover:border-[#f6c25d] transition-all bg-white/50">
-              <Bell className="w-4 h-4 text-[#688fad]" />
-            </button>
-            <button className="w-10 h-10 flex items-center justify-center border-2 border-[#d9d9d9] hover:border-[#f6c25d] transition-all bg-white/50">
-              <Settings className="w-4 h-4 text-[#688fad]" />
-            </button>
+            <NotificationsDropdown />
+            <SettingsDropdown />
           </div>
         </div>
       </div>

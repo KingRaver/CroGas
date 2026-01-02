@@ -481,3 +481,149 @@
     background: var(--burgundy);
   }
 }
+
+/* ============================================
+   THEME SYSTEM
+   ============================================ */
+
+/* Light theme (default - Parisian) */
+:root,
+[data-theme="light"] {
+  --bg-primary: #f8f6f0;
+  --bg-secondary: #e8e4d9;
+  --bg-card: rgba(248, 246, 240, 0.95);
+  --text-primary: #2a2a2a;
+  --text-secondary: #3f647e;
+  --text-muted: #688fad;
+  --border-color: #d9d9d9;
+  --accent-gold: #f6c25d;
+  --accent-burgundy: #a52b36;
+  --accent-teal: #00b0b2;
+}
+
+/* Dark theme (Noir) */
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2a2a2a;
+  --bg-card: rgba(42, 42, 42, 0.95);
+  --text-primary: #f8f6f0;
+  --text-secondary: #d9d9d9;
+  --text-muted: #888888;
+  --border-color: #3f3f3f;
+  --accent-gold: #f6c25d;
+  --accent-burgundy: #c44d58;
+  --accent-teal: #00d4d6;
+}
+
+/* Midnight theme (Teal accents) */
+[data-theme="midnight"] {
+  --bg-primary: #0d1b2a;
+  --bg-secondary: #1b2838;
+  --bg-card: rgba(27, 40, 56, 0.95);
+  --text-primary: #e0f7fa;
+  --text-secondary: #80deea;
+  --text-muted: #4db6ac;
+  --border-color: #37474f;
+  --accent-gold: #ffd54f;
+  --accent-burgundy: #ff8a80;
+  --accent-teal: #00b0b2;
+}
+
+/* Apply theme variables to body */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Themed backgrounds */
+.bg-theme-primary {
+  background: var(--bg-primary);
+}
+
+.bg-theme-secondary {
+  background: var(--bg-secondary);
+}
+
+.bg-theme-card {
+  background: var(--bg-card);
+}
+
+/* Themed text */
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.text-theme-muted {
+  color: var(--text-muted);
+}
+
+/* Themed borders */
+.border-theme {
+  border-color: var(--border-color);
+}
+
+/* Themed accents */
+.text-accent-gold {
+  color: var(--accent-gold);
+}
+
+.text-accent-burgundy {
+  color: var(--accent-burgundy);
+}
+
+.text-accent-teal {
+  color: var(--accent-teal);
+}
+
+.border-accent-gold {
+  border-color: var(--accent-gold);
+}
+
+/* Override card-deco for themes */
+[data-theme="dark"] .card-deco,
+[data-theme="midnight"] .card-deco {
+  background: var(--bg-card);
+  border-color: var(--accent-gold);
+}
+
+[data-theme="dark"] .card-deco::before,
+[data-theme="dark"] .card-deco::after,
+[data-theme="midnight"] .card-deco::before,
+[data-theme="midnight"] .card-deco::after {
+  border-color: var(--accent-gold);
+}
+
+/* Override patterns for dark themes */
+[data-theme="dark"] .pattern-sunburst,
+[data-theme="dark"] .pattern-chevron,
+[data-theme="dark"] .pattern-lattice,
+[data-theme="midnight"] .pattern-sunburst,
+[data-theme="midnight"] .pattern-chevron,
+[data-theme="midnight"] .pattern-lattice {
+  opacity: 0.02;
+}
+
+/* Override input for themes */
+[data-theme="dark"] .input-deco,
+[data-theme="midnight"] .input-deco {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .input-deco:focus,
+[data-theme="midnight"] .input-deco:focus {
+  border-color: var(--accent-gold);
+}
+
+/* Override btn-deco for themes */
+[data-theme="dark"] .btn-deco,
+[data-theme="midnight"] .btn-deco {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}

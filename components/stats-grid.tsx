@@ -17,44 +17,32 @@ export default function StatsGrid({ data }: StatsGridProps) {
       value: `${data?.croBalance?.toFixed(2) || '49.10'}`,
       unit: 'CRO',
       icon: Fuel,
-      glowClass: 'neon-cyan',
-      iconBg: 'bg-cyan-400/20',
-      textColor: 'text-cyan-300',
-      borderColor: 'border-cyan-400/50',
-      barColor: 'from-cyan-400 to-cyan-200',
+      accentColor: '#00b0b2', // teal
+      bgAccent: 'bg-[#00b0b2]/10',
     },
     {
       label: 'USDC Earned',
       value: `$${data?.usdcEarned?.toFixed(2) || '12.34'}`,
       unit: '',
       icon: DollarSign,
-      glowClass: 'neon-pink',
-      iconBg: 'bg-pink-400/20',
-      textColor: 'text-pink-300',
-      borderColor: 'border-pink-400/50',
-      barColor: 'from-pink-400 to-orange-300',
+      accentColor: '#f6c25d', // gold
+      bgAccent: 'bg-[#f6c25d]/10',
     },
     {
       label: 'Gas Price',
       value: data?.gasPrice || '25',
       unit: 'gwei',
       icon: Zap,
-      glowClass: 'neon-purple',
-      iconBg: 'bg-purple-400/20',
-      textColor: 'text-purple-300',
-      borderColor: 'border-purple-400/50',
-      barColor: 'from-purple-400 to-pink-300',
+      accentColor: '#a52b36', // burgundy
+      bgAccent: 'bg-[#a52b36]/10',
     },
     {
       label: 'Tx Processed',
       value: data?.txCount?.toString() || '127',
       unit: '',
       icon: Activity,
-      glowClass: '',
-      iconBg: 'bg-orange-400/20',
-      textColor: 'text-orange-300',
-      borderColor: 'border-orange-400/50',
-      barColor: 'from-orange-400 to-yellow-300',
+      accentColor: '#3f647e', // slate
+      bgAccent: 'bg-[#3f647e]/10',
     },
   ]
 
@@ -63,45 +51,45 @@ export default function StatsGrid({ data }: StatsGridProps) {
       {stats.map((stat, index) => (
         <div
           key={stat.label}
-          className={`
-            glass-light p-6 rounded-2xl border-2 ${stat.borderColor} ${stat.glowClass}
-            card-hover cursor-default
-          `}
-          style={{ 
-            animationDelay: `${index * 100}ms`,
-          }}
+          className="card-deco p-6 hover-lift animate-fade-in"
+          style={{ animationDelay: `${index * 100}ms` }}
         >
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 ${stat.iconBg} rounded-xl flex items-center justify-center backdrop-blur-sm`}>
-              <stat.icon className={`w-7 h-7 ${stat.textColor}`} style={{ filter: 'drop-shadow(0 0 8px currentColor)' }} />
+          <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 ${stat.bgAccent} rounded-sm flex items-center justify-center`}>
+              <stat.icon 
+                className="w-6 h-6" 
+                style={{ color: stat.accentColor }}
+              />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-white/60 uppercase tracking-wider font-medium mb-1">
-                {stat.label}
-              </p>
-              <div className="flex items-baseline gap-2">
-                <span className={`text-2xl font-black ${stat.textColor} tracking-tight`} style={{ filter: 'drop-shadow(0 0 10px currentColor)' }}>
-                  {stat.value}
-                </span>
-                {stat.unit && (
-                  <span className="text-sm text-white/50 font-medium">
-                    {stat.unit}
-                  </span>
-                )}
-              </div>
+            
+            {/* Decorative element */}
+            <div className="flex gap-1">
+              <div className="w-2 h-2 rotate-45" style={{ backgroundColor: stat.accentColor, opacity: 0.3 }} />
+              <div className="w-2 h-2 rotate-45" style={{ backgroundColor: stat.accentColor, opacity: 0.5 }} />
+              <div className="w-2 h-2 rotate-45" style={{ backgroundColor: stat.accentColor }} />
             </div>
           </div>
           
-          {/* Animated bottom bar */}
-          <div className="mt-4 h-1.5 rounded-full bg-black/30 overflow-hidden">
-            <div 
-              className={`h-full rounded-full bg-gradient-to-r ${stat.barColor}`}
-              style={{ 
-                width: `${60 + (index * 10)}%`,
-                boxShadow: '0 0 10px currentColor',
-              }}
-            />
+          <p className="text-xs text-[#3f647e] uppercase tracking-[0.2em] font-medium mb-2">
+            {stat.label}
+          </p>
+          
+          <div className="flex items-baseline gap-2">
+            <span 
+              className="text-3xl font-light display-font"
+              style={{ color: stat.accentColor }}
+            >
+              {stat.value}
+            </span>
+            {stat.unit && (
+              <span className="text-sm text-[#688fad] font-medium">
+                {stat.unit}
+              </span>
+            )}
           </div>
+          
+          {/* Bottom decorative line */}
+          <div className="mt-4 h-0.5 bg-gradient-to-r from-transparent via-[#f6c25d]/50 to-transparent" />
         </div>
       ))}
     </div>

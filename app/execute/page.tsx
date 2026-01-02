@@ -1,11 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { api } from '@/lib/api'
+import { useAccount } from 'wagmi'
 import { cn } from '@/lib/utils'
-import { Fuel, Zap, Send, ExternalLink, ArrowLeft } from 'lucide-react'
+import { Fuel, Zap, Send, ExternalLink, ArrowLeft, AlertCircle, Wallet } from 'lucide-react'
 import Link from 'next/link'
-import SettingsDropdown, { getSettings } from '@/components/settings-dropdown'
-import NotificationsDropdown, { addNotification } from '@/components/notifications-dropdown'
+import { useMetaTx, getStatusMessage } from '@/hooks/useMetaTx'
+import { WalletModal } from '@/components/wallet-modal'
+import { addNotification } from '@/components/notifications-dropdown'
 
 function DecoDivider() {
   return (
@@ -21,104 +22,77 @@ function DecoDivider() {
 }
 
 export default function ExecutePage() {
+  const { isConnected, address } = useAccount()
+  const { signAndRelay, status, error, result, isLoading, reset } = useMetaTx()
+  
   const [target, setTarget] = useState('0x145863Eb42Cf62847A6Ca784e6416C1682b1b2Ae')
   const [calldata, setCalldata] = useState('0x')
-  const [priority, setPriority] = useState('normal')
-  const [status, setStatus] = useState('')
-  const [txHash, setTxHash] = useState('')
-
-  // Load default gas tier from settings on mount
-  useEffect(() => {
-    const settings = getSettings()
-    setPriority(settings.defaultGasTier)
-  }, [])
+  const [priority, setPriority] = useState<'slow' | 'normal' | 'fast'>('normal')
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
 
   const executeMetaTx = async () => {
-    if (!target) {
-      setStatus('Please enter target address')
+    if (!isConnected) {
+      setIsWalletModalOpen(true)
+      return
+    }
+
+    if (!target || !target.startsWith('0x')) {
       addNotification({
         type: 'error',
         title: 'Validation Error',
-        message: 'Please enter a target address',
+        message: 'Please enter a valid target address',
       })
       return
     }
     
-    setStatus('Building meta-transaction...')
     addNotification({
       type: 'pending',
       title: 'Building Transaction',
       message: 'Preparing meta-transaction...',
     })
     
-    try {
-      const nonceRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/meta/nonce/${'0xYourAgentWallet'}`)
-      const { nonce } = await nonceRes.json()
-      
-      const request = {
-        from: '0xYourAgentWallet',
-        to: target,
-        value: '0',
-        gas: '250000',
-        nonce: nonce.toString(),
-        deadline: Math.floor(Date.now() / 1000 + 3600).toString(),
-        data: calldata
-      }
-      
-      setStatus('Signing EIP-712 message...')
+    const txResult = await signAndRelay(
+      target as `0x${string}`,
+      (calldata || '0x') as `0x${string}`,
+      '0',
+      '250000',
+      priority
+    )
+    
+    if (txResult.success) {
       addNotification({
-        type: 'pending',
-        title: 'Awaiting Signature',
-        message: 'Please sign the EIP-712 message...',
+        type: 'success',
+        title: 'Transaction Confirmed',
+        message: `Tx: ${txResult.txHash?.slice(0, 10)}...${txResult.txHash?.slice(-8)}`,
       })
-      
-      const signature = '0x...'
-      
-      setStatus('Relaying to gas station...')
+    } else if (txResult.quote) {
       addNotification({
-        type: 'pending',
-        title: 'Relaying Transaction',
-        message: 'Submitting to gas station relayer...',
+        type: 'info',
+        title: 'Payment Required',
+        message: `Pay ${txResult.quote.priceUSDC} USDC to proceed`,
       })
-      
-      const res = await api.executeMetaTx({ 
-        request, 
-        signature, 
-        priority 
-      })
-      
-      if (res.success) {
-        setStatus('Transaction successful!')
-        setTxHash(res.txHash)
-        addNotification({
-          type: 'success',
-          title: 'Transaction Confirmed',
-          message: `Tx hash: ${res.txHash.slice(0, 10)}...${res.txHash.slice(-8)}`,
-        })
-      } else {
-        setStatus(`Payment required: ${res.quote?.priceUSDC || '0.01'} USDC`)
-        addNotification({
-          type: 'info',
-          title: 'Payment Required',
-          message: `Pay ${res.quote?.priceUSDC || '0.01'} USDC to proceed`,
-        })
-      }
-      
-    } catch (error: any) {
-      setStatus(`Error: ${error.message}`)
+    } else if (txResult.error) {
       addNotification({
         type: 'error',
         title: 'Transaction Failed',
-        message: error.message,
+        message: txResult.error,
       })
     }
   }
 
-  const pricingTiers = [
+  const pricingTiers: Array<{
+    value: 'slow' | 'normal' | 'fast'
+    label: string
+    price: string
+    time: string
+    icon: string
+  }> = [
     { value: 'slow', label: 'Économique', price: '$0.005', time: '~30s', icon: '◇' },
     { value: 'normal', label: 'Standard', price: '$0.01', time: '~10s', icon: '◆' },
-    { value: 'fast', label: 'Prioritaire', price: '$0.02', time: '~3s', icon: '❖' }
+    { value: 'fast', label: 'Prioritaire', price: '$0.02', time: '~3s', icon: '▣' }
   ]
+
+  const statusMessage = getStatusMessage(status)
 
   return (
     <main className="min-h-screen">
@@ -133,10 +107,23 @@ export default function ExecutePage() {
             <span className="font-medium uppercase tracking-wider text-sm">Back to Dashboard</span>
           </Link>
           
-          <div className="flex items-center gap-3">
-            <NotificationsDropdown />
-            <SettingsDropdown />
-          </div>
+          {/* Wallet Status */}
+          {isConnected && address ? (
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#879c7d]/10 border border-[#879c7d]">
+              <div className="w-2 h-2 rounded-full bg-[#879c7d] animate-pulse" />
+              <span className="text-sm font-mono text-[#6b7d62]">
+                {address.slice(0, 6)}...{address.slice(-4)}
+              </span>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsWalletModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 border-2 border-[#f6c25d] text-[#3f647e] hover:bg-[#f6c25d]/10 transition-colors"
+            >
+              <Wallet className="w-4 h-4" />
+              <span className="text-sm font-medium">Connect Wallet</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -160,6 +147,23 @@ export default function ExecutePage() {
           </p>
         </div>
 
+        {/* Connection Warning */}
+        {!isConnected && (
+          <div className="mb-8 p-4 border-2 border-[#f6c25d] bg-[#f6c25d]/10 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-[#f6c25d] flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-[#3f647e] font-medium">Wallet not connected</p>
+              <p className="text-sm text-[#688fad]">Connect your wallet to execute meta-transactions</p>
+            </div>
+            <button
+              onClick={() => setIsWalletModalOpen(true)}
+              className="px-4 py-2 bg-[#f6c25d] text-white font-medium hover:bg-[#e5b34c] transition-colors"
+            >
+              Connect
+            </button>
+          </div>
+        )}
+
         {/* Main Card */}
         <div className="card-framed animate-fade-in">
           {/* Card Header */}
@@ -180,6 +184,17 @@ export default function ExecutePage() {
           <DecoDivider />
 
           <div className="space-y-8">
+            {/* From Address (read-only, shows connected wallet) */}
+            <div>
+              <label className="flex items-center gap-2 text-xs font-semibold mb-3 text-[#3f647e] uppercase tracking-[0.2em]">
+                <Wallet className="w-4 h-4 text-[#879c7d]" />
+                From Address
+              </label>
+              <div className="input-deco w-full rounded-none text-lg h-14 flex items-center px-4 bg-[#f8f6f0] text-[#688fad] font-mono">
+                {address || 'Connect wallet to see address'}
+              </div>
+            </div>
+
             {/* Target Contract */}
             <div>
               <label className="flex items-center gap-2 text-xs font-semibold mb-3 text-[#3f647e] uppercase tracking-[0.2em]">
@@ -218,11 +233,13 @@ export default function ExecutePage() {
                   <button
                     key={tier.value}
                     onClick={() => setPriority(tier.value)}
+                    disabled={isLoading}
                     className={cn(
                       'p-5 border-2 transition-all duration-300 text-center relative',
                       priority === tier.value 
                         ? 'border-[#f6c25d] bg-[#f6c25d]/10' 
-                        : 'border-[#d9d9d9] hover:border-[#3f647e] bg-white/50'
+                        : 'border-[#d9d9d9] hover:border-[#3f647e] bg-white/50',
+                      isLoading && 'opacity-50 cursor-not-allowed'
                     )}
                   >
                     {/* Corner accents when selected */}
@@ -260,34 +277,52 @@ export default function ExecutePage() {
             <div className="pt-4">
               <button
                 onClick={executeMetaTx}
-                className="btn-deco w-full h-16 flex items-center justify-center gap-3 text-xl"
+                disabled={isLoading}
+                className={cn(
+                  'btn-deco w-full h-16 flex items-center justify-center gap-3 text-xl',
+                  isLoading && 'opacity-70 cursor-wait'
+                )}
               >
-                <Fuel className="w-6 h-6" />
-                Execute Transaction
+                {isLoading ? (
+                  <>
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {statusMessage}
+                  </>
+                ) : (
+                  <>
+                    <Fuel className="w-6 h-6" />
+                    {isConnected ? 'Execute Transaction' : 'Connect Wallet to Execute'}
+                  </>
+                )}
               </button>
             </div>
 
-            {/* Status */}
-            {status && (
+            {/* Status Display */}
+            {(status !== 'idle' || error) && (
               <div className={cn(
                 'p-6 border-2 text-center transition-all',
-                status.includes('successful') || status.includes('received')
+                status === 'success'
                   ? 'border-[#879c7d] bg-[#879c7d]/10' 
-                  : status.includes('Error')
+                  : status === 'error'
                   ? 'border-[#a52b36] bg-[#a52b36]/10'
+                  : status === 'payment-required'
+                  ? 'border-[#00b0b2] bg-[#00b0b2]/10'
                   : 'border-[#f6c25d] bg-[#f6c25d]/10'
               )}>
                 <p className={cn(
                   'serif text-lg italic mb-4',
-                  status.includes('successful') ? 'text-[#6b7d62]' :
-                  status.includes('Error') ? 'text-[#a52b36]' : 'text-[#3f647e]'
+                  status === 'success' ? 'text-[#6b7d62]' :
+                  status === 'error' ? 'text-[#a52b36]' :
+                  status === 'payment-required' ? 'text-[#00b0b2]' :
+                  'text-[#3f647e]'
                 )}>
-                  {status}
+                  {error || statusMessage}
+                  {result?.quote && ` - ${result.quote.priceUSDC} USDC`}
                 </p>
                 
-                {txHash && (
+                {result?.txHash && (
                   <a
-                    href={`https://explorer.cronos.org/testnet/tx/${txHash}`}
+                    href={`https://explorer.cronos.org/testnet/tx/${result.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#00b0b2] text-[#00b0b2] hover:bg-[#00b0b2]/10 transition-all font-medium uppercase tracking-wider text-sm"
@@ -295,6 +330,15 @@ export default function ExecutePage() {
                     View on Cronoscan
                     <ExternalLink className="w-4 h-4" />
                   </a>
+                )}
+
+                {(status === 'error' || status === 'success') && (
+                  <button
+                    onClick={reset}
+                    className="mt-4 block mx-auto text-sm text-[#688fad] hover:text-[#3f647e] underline"
+                  >
+                    Reset
+                  </button>
                 )}
               </div>
             )}
@@ -312,6 +356,12 @@ export default function ExecutePage() {
           </svg>
         </div>
       </div>
+
+      {/* Wallet Modal */}
+      <WalletModal 
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
     </main>
   )
 }

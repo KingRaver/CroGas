@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { Link2, Zap, ArrowRight, Fuel, Shield, Coins } from 'lucide-react'
+import { useAccount } from 'wagmi'
+import { Link2, Zap, ArrowRight, Fuel, Shield, Coins, Check } from 'lucide-react'
+import { WalletModal, ConnectedWallet } from '@/components/wallet-modal'
 import StatsGrid from '@/components/stats-grid'
 
 function DecoDivider() {
@@ -31,12 +33,8 @@ function SunburstHero() {
 }
 
 export default function HomePage() {
-  const [isConnecting, setIsConnecting] = useState(false)
-
-  const handleConnect = () => {
-    setIsConnecting(true)
-    setTimeout(() => setIsConnecting(false), 2000)
-  }
+  const { isConnected, address } = useAccount()
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
     <main className="relative min-h-screen">
@@ -77,26 +75,51 @@ export default function HomePage() {
             <span className="font-semibold text-[#00b0b2]">Zero CRO required.</span>
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <button
-              onClick={handleConnect}
-              disabled={isConnecting}
-              className="btn-deco min-w-[280px] flex items-center justify-center gap-3"
-            >
-              <Link2 className="w-5 h-5" />
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-            </button>
-            
-            <button
-              className="btn-outline-elegant min-w-[280px] flex items-center justify-center gap-3"
-              onClick={() => window.location.href = '/dashboard'}
-            >
-              <Zap className="w-5 h-5" />
-              Open Dashboard
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Wallet Connection Section */}
+          {isConnected && address ? (
+            <div className="max-w-md mx-auto mb-8">
+              <ConnectedWallet />
+              
+              {/* Dashboard CTA when connected */}
+              <button
+                className="btn-deco w-full mt-4 flex items-center justify-center gap-3"
+                onClick={() => window.location.href = '/dashboard'}
+              >
+                <Zap className="w-5 h-5" />
+                Open Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            /* CTA Buttons when not connected */
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="btn-deco min-w-[280px] flex items-center justify-center gap-3"
+              >
+                <Link2 className="w-5 h-5" />
+                Connect Wallet
+              </button>
+              
+              <button
+                className="btn-outline-elegant min-w-[280px] flex items-center justify-center gap-3 opacity-50 cursor-not-allowed"
+                disabled
+                title="Connect wallet to access dashboard"
+              >
+                <Zap className="w-5 h-5" />
+                Open Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          
+          {/* Connection Status Indicator */}
+          {isConnected && (
+            <div className="flex items-center justify-center gap-2 text-sm text-[#879c7d] mb-4">
+              <Check className="w-4 h-4" />
+              <span>Ready to execute gasless transactions</span>
+            </div>
+          )}
           
           {/* Ornamental bottom piece */}
           <div className="flex justify-center mt-8">
@@ -195,12 +218,32 @@ export default function HomePage() {
             
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { step: '01', title: 'Connect', desc: 'Link your agent wallet to the gas station' },
-                { step: '02', title: 'Fund', desc: 'Acquire testnet USDC from our faucet' },
-                { step: '03', title: 'Execute', desc: 'Send meta-transactions, pay in USDC' },
+                { 
+                  step: '01', 
+                  title: 'Connect', 
+                  desc: 'Link your agent wallet to the gas station',
+                  done: isConnected
+                },
+                { 
+                  step: '02', 
+                  title: 'Fund', 
+                  desc: 'Acquire testnet USDC from our faucet',
+                  done: false
+                },
+                { 
+                  step: '03', 
+                  title: 'Execute', 
+                  desc: 'Send meta-transactions, pay in USDC',
+                  done: false
+                },
               ].map((item, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-5xl display-font text-[#f6c25d]/30 mb-2">
+                <div key={i} className="text-center relative">
+                  {item.done && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#879c7d] rounded-full flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <div className={`text-5xl display-font mb-2 ${item.done ? 'text-[#879c7d]' : 'text-[#f6c25d]/30'}`}>
                     {item.step}
                   </div>
                   <h4 className="text-lg display-font text-[#3f647e] tracking-wider mb-2">
@@ -235,6 +278,12 @@ export default function HomePage() {
           </p>
         </footer>
       </div>
+
+      {/* Wallet Connection Modal */}
+      <WalletModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </main>
   )
 }

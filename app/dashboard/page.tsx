@@ -1,9 +1,12 @@
 'use client'
+import { useAccount } from 'wagmi'
+import { useState } from 'react'
 import StatsGrid from '@/components/stats-grid'
 import MetaTxForm from '@/components/meta-tx-form'
 import SettingsDropdown from '@/components/settings-dropdown'
 import NotificationsDropdown from '@/components/notifications-dropdown'
-import { ArrowLeft } from 'lucide-react'
+import { WalletModal } from '@/components/wallet-modal'
+import { ArrowLeft, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
 function DecoDivider() {
@@ -20,6 +23,9 @@ function DecoDivider() {
 }
 
 export default function DashboardPage() {
+  const { isConnected, address } = useAccount()
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+
   return (
     <main className="min-h-screen">
       {/* Header */}
@@ -34,6 +40,24 @@ export default function DashboardPage() {
           </Link>
           
           <div className="flex items-center gap-3">
+            {/* Wallet Status */}
+            {isConnected && address ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-[#879c7d]/10 border border-[#879c7d]">
+                <div className="w-2 h-2 rounded-full bg-[#879c7d] animate-pulse" />
+                <span className="text-xs font-mono text-[#6b7d62]">
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </span>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsWalletModalOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 border-2 border-[#f6c25d] text-[#3f647e] hover:bg-[#f6c25d]/10 transition-colors"
+              >
+                <Wallet className="w-4 h-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Connect</span>
+              </button>
+            )}
+            
             <NotificationsDropdown />
             <SettingsDropdown />
           </div>
@@ -88,6 +112,12 @@ export default function DashboardPage() {
           <path d="M100 15 L150 15" stroke="#3f647e" strokeWidth="1"/>
         </svg>
       </div>
+
+      {/* Wallet Modal */}
+      <WalletModal 
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
     </main>
   )
 }

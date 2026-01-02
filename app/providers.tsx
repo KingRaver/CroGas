@@ -3,16 +3,26 @@
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cronosConfig } from '@/lib/cronos'
+import { useState, type ReactNode } from 'react'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-})
+export function Providers({ children }: { children: ReactNode }) {
+  // Create QueryClient inside component to avoid SSR issues
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            // Prevent refetching on window focus for better UX
+            refetchOnWindowFocus: false,
+            // Retry failed requests once
+            retry: 1,
+            // Keep data fresh for 30 seconds
+            staleTime: 30 * 1000,
+          },
+        },
+      })
+  )
 
-export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={cronosConfig}>
       <QueryClientProvider client={queryClient}>

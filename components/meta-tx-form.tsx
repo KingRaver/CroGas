@@ -1,28 +1,44 @@
 'use client'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState, useEffect } from 'react'
+import { useAccount } from 'wagmi'
 import { api } from '@/lib/api'
-import { Flame, Send, Clock, Rocket, Car, ExternalLink } from 'lucide-react'
+import { Flame, Send, Clock, Rocket, Car, ExternalLink, Wallet, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useMetaTx, getStatusMessage } from '@/hooks/useMetaTx'
+import { WalletModal } from '@/components/wallet-modal'
+import { addNotification } from '@/components/notifications-dropdown'
+import { getSettings } from '@/components/settings-dropdown'
+import { CONTRACTS } from '@/lib/cronos'
 
 interface RecentTx {
   hash: string
   to: string
   amount: string
+  explorerUrl?: string
 }
 
 export default function MetaTxForm() {
+  const { isConnected, address } = useAccount()
+  const { signAndRelay, status, error, result, isLoading, reset } = useMetaTx()
+  
   const [target, setTarget] = useState('0x145863Eb42Cf62847A6Ca784e6416C1682b1b2Ae')
-  const [priority, setPriority] = useState('normal')
-  const [status, setStatus] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [recentTxs, setRecentTxs] = useState<RecentTx[]>([
-    { hash: '0xF40B9a...', to: 'TestUSDC', amount: '$0.01' },
-    { hash: '0x7906Ab...', to: 'VVS Swap', amount: '$0.02' },
-  ])
+  const [priority, setPriority] = useState<'slow' | 'normal' | 'fast'>('normal')
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [recentTxs, setRecentTxs] = useState<RecentTx[]>([])
 
-  const pricingTiers = [
+  // Load default gas tier from settings on mount
+  useEffect(() => {
+    const settings = getSettings()
+    setPriority(settings.defaultGasTier)
+  }, [])
+
+  const pricingTiers: Array<{
+    value: 'slow' | 'normal' | 'fast'
+    label: string
+    price: string
+    time: string
+    icon: typeof Clock
+  }> = [
     { 
       value: 'slow', 
       label: 'Économique', 
@@ -47,40 +63,104 @@ export default function MetaTxForm() {
   ]
 
   const execute = async () => {
-    setStatus('Executing meta-transaction...')
-    setIsLoading(true)
-    
-    try {
-      const res = await api.executeMetaTx({
-        request: {
-          from: '0xYourAgentWallet',
-          to: target,
-          value: '0',
-          gas: '200000',
-          nonce: '0',
-          deadline: Math.floor(Date.now() / 1000 + 3600).toString(),
-          data: '0x'
-        },
-        signature: '0x...',
-        priority
+    if (!isConnected) {
+      setIsWalletModalOpen(true)
+      return
+    }
+
+    if (!target || !target.startsWith('0x')) {
+      addNotification({
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Please enter a valid target address',
+      })
+      return
+    }
+
+    addNotification({
+      type: 'pending',
+      title: 'Building Transaction',
+      message: 'Preparing meta-transaction...',
+    })
+
+    const txResult = await signAndRelay(
+      target as `0x${string}`,
+      '0x' as `0x${string}`,
+      '0',
+      '200000',
+      priority
+    )
+
+    if (txResult.success && txResult.txHash) {
+      addNotification({
+        type: 'success',
+        title: 'Transaction Confirmed',
+        message: `Tx: ${txResult.txHash.slice(0, 10)}...${txResult.txHash.slice(-8)}`,
       })
       
-      setStatus(`Success: ${res.txHash.slice(0, 12)}...`)
+      // Add to recent transactions
       setRecentTxs(prev => [
-        { hash: res.txHash.slice(0, 10) + '...', to: 'Contract', amount: '$0.01' },
+        { 
+          hash: `${txResult.txHash!.slice(0, 10)}...`, 
+          to: 'Contract', 
+          amount: pricingTiers.find(t => t.value === priority)?.price || '$0.01',
+          explorerUrl: `https://explorer.cronos.org/testnet/tx/${txResult.txHash}`
+        },
         ...prev.slice(0, 4)
       ])
-    } catch (e: any) {
-      setStatus(`Error: ${e.message}`)
-    } finally {
-      setIsLoading(false)
+    } else if (txResult.quote) {
+      addNotification({
+        type: 'info',
+        title: 'Payment Required',
+        message: `Pay ${txResult.quote.priceUSDC} USDC to proceed`,
+      })
+    } else if (txResult.error) {
+      addNotification({
+        type: 'error',
+        title: 'Transaction Failed',
+        message: txResult.error,
+      })
     }
   }
 
   const getTestUSDC = async () => {
-    setStatus('Requesting TestUSDC from faucet...')
-    setTimeout(() => setStatus('100 TestUSDC received!'), 1500)
+    if (!isConnected || !address) {
+      setIsWalletModalOpen(true)
+      return
+    }
+
+    addNotification({
+      type: 'pending',
+      title: 'Requesting TestUSDC',
+      message: 'Contacting faucet...',
+    })
+
+    try {
+      const response = await api.getFaucet(address)
+      if (response.ok) {
+        addNotification({
+          type: 'success',
+          title: 'Faucet Success',
+          message: '100 TestUSDC received!',
+        })
+      } else {
+        const data = await response.json()
+        addNotification({
+          type: 'error',
+          title: 'Faucet Error',
+          message: data.error || 'Failed to get TestUSDC',
+        })
+      }
+    } catch (e: any) {
+      addNotification({
+        type: 'error',
+        title: 'Faucet Error',
+        message: e.message || 'Failed to contact faucet',
+      })
+    }
   }
+
+  const statusMessage = getStatusMessage(status)
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
@@ -95,6 +175,34 @@ export default function MetaTxForm() {
             <div className="divider-deco-icon" />
           </div>
         </div>
+
+        {/* Wallet Connection Status */}
+        {!isConnected ? (
+          <div className="mb-6 p-4 border-2 border-[#f6c25d] bg-[#f6c25d]/10 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-[#f6c25d] flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-[#3f647e] font-medium text-sm">Wallet not connected</p>
+              <p className="text-xs text-[#688fad]">Connect to execute transactions</p>
+            </div>
+            <button
+              onClick={() => setIsWalletModalOpen(true)}
+              className="px-3 py-1.5 bg-[#f6c25d] text-white text-sm font-medium hover:bg-[#e5b34c] transition-colors"
+            >
+              Connect
+            </button>
+          </div>
+        ) : (
+          <div className="mb-6 p-3 border border-[#879c7d] bg-[#879c7d]/10 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#879c7d] animate-pulse" />
+            <div className="flex-1">
+              <p className="text-xs text-[#688fad] uppercase tracking-wider">Connected</p>
+              <p className="text-sm font-mono text-[#3f647e]">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </p>
+            </div>
+            <Wallet className="w-4 h-4 text-[#879c7d]" />
+          </div>
+        )}
         
         <div className="space-y-6">
           {/* Target Contract Input */}
@@ -108,6 +216,7 @@ export default function MetaTxForm() {
               onChange={(e) => setTarget(e.target.value)}
               placeholder="0x... Contract Address"
               className="input-deco w-full rounded-none"
+              disabled={isLoading}
             />
           </div>
 
@@ -121,11 +230,13 @@ export default function MetaTxForm() {
                 <button
                   key={tier.value}
                   onClick={() => setPriority(tier.value)}
+                  disabled={isLoading}
                   className={cn(
                     'p-4 border-2 transition-all duration-300 text-center',
                     priority === tier.value 
                       ? 'border-[#f6c25d] bg-[#f6c25d]/10' 
-                      : 'border-[#d9d9d9] hover:border-[#3f647e] bg-white/50'
+                      : 'border-[#d9d9d9] hover:border-[#3f647e] bg-white/50',
+                    isLoading && 'opacity-50 cursor-not-allowed'
                   )}
                 >
                   <tier.icon className={cn(
@@ -150,7 +261,10 @@ export default function MetaTxForm() {
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-4 pt-4">
             <button 
-              className="btn-outline-elegant h-14 flex items-center justify-center gap-2"
+              className={cn(
+                "btn-outline-elegant h-14 flex items-center justify-center gap-2",
+                isLoading && 'opacity-50 cursor-not-allowed'
+              )}
               onClick={getTestUSDC}
               disabled={isLoading}
             >
@@ -158,27 +272,62 @@ export default function MetaTxForm() {
               Get TestUSDC
             </button>
             <button 
-              className="btn-gold h-14 flex items-center justify-center gap-2"
+              className={cn(
+                "btn-gold h-14 flex items-center justify-center gap-2",
+                isLoading && 'opacity-70 cursor-wait'
+              )}
               onClick={execute}
               disabled={isLoading}
             >
-              <Send className="w-5 h-5" />
-              Execute
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="text-sm">Signing...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Execute
+                </>
+              )}
             </button>
           </div>
         </div>
         
         {/* Status */}
-        {status && (
+        {(status !== 'idle' || error) && (
           <div className={cn(
             'mt-6 p-4 border-2 text-center serif text-lg',
-            status.includes('Success') || status.includes('received')
+            status === 'success'
               ? 'border-[#879c7d] bg-[#879c7d]/10 text-[#6b7d62]' 
-              : status.includes('Error')
+              : status === 'error'
               ? 'border-[#a52b36] bg-[#a52b36]/10 text-[#a52b36]'
+              : status === 'payment-required'
+              ? 'border-[#00b0b2] bg-[#00b0b2]/10 text-[#00b0b2]'
               : 'border-[#f6c25d] bg-[#f6c25d]/10 text-[#3f647e]'
           )}>
-            {status}
+            {error || statusMessage}
+            {result?.quote && ` - ${result.quote.priceUSDC} USDC`}
+            
+            {result?.txHash && (
+              <a
+                href={`https://explorer.cronos.org/testnet/tx/${result.txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block mt-3 text-sm text-[#00b0b2] hover:underline"
+              >
+                View on Explorer →
+              </a>
+            )}
+
+            {(status === 'error' || status === 'success') && (
+              <button
+                onClick={reset}
+                className="block mx-auto mt-3 text-xs text-[#688fad] hover:text-[#3f647e] underline"
+              >
+                Reset
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -196,26 +345,36 @@ export default function MetaTxForm() {
         </div>
         
         <div className="space-y-3">
-          {recentTxs.map((tx, i) => (
-            <div 
-              key={i}
-              className="flex items-center justify-between p-4 bg-white/60 border border-[#d9d9d9] hover:border-[#f6c25d] transition-all group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <code className="text-[#00b0b2] text-sm font-medium">
-                  {tx.hash}
-                </code>
-                <span className="text-[#688fad]">→</span>
-                <span className="text-[#3f647e] font-medium">{tx.to}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#a52b36] font-semibold">
-                  {tx.amount}
-                </span>
-                <ExternalLink className="w-4 h-4 text-[#d9d9d9] group-hover:text-[#f6c25d] transition-colors" />
-              </div>
+          {recentTxs.length === 0 ? (
+            <div className="text-center py-8 text-[#688fad]">
+              <p className="text-sm italic">No transactions yet</p>
+              <p className="text-xs mt-1">Execute a meta-transaction to see it here</p>
             </div>
-          ))}
+          ) : (
+            recentTxs.map((tx, i) => (
+              <a 
+                key={i}
+                href={tx.explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-4 bg-white/60 border border-[#d9d9d9] hover:border-[#f6c25d] transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <code className="text-[#00b0b2] text-sm font-medium">
+                    {tx.hash}
+                  </code>
+                  <span className="text-[#688fad]">→</span>
+                  <span className="text-[#3f647e] font-medium">{tx.to}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#a52b36] font-semibold">
+                    {tx.amount}
+                  </span>
+                  <ExternalLink className="w-4 h-4 text-[#d9d9d9] group-hover:text-[#f6c25d] transition-colors" />
+                </div>
+              </a>
+            ))
+          )}
         </div>
 
         {/* Awaiting placeholder */}
@@ -235,6 +394,12 @@ export default function MetaTxForm() {
           </div>
         </div>
       </div>
+
+      {/* Wallet Modal */}
+      <WalletModal 
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
     </div>
   )
 }

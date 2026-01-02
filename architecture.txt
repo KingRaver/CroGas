@@ -6,17 +6,31 @@ crogas_frontend/
 │   │   └── page.tsx
 │   ├── api/                # API proxy
 │   │   └── meta/route.ts
+│   ├── globals.css
+│   ├── providers.tsx
 │   ├── layout.tsx
 │   └── page.tsx            # / Home page
 ├── components/
-│   ├── gas-pump-3d.tsx     # Spinning 3D pump
+│   ├── notifications-dropdown.tsx
+│   ├── settings-dropdown.tsx
 │   ├── stats-grid.tsx      # CRO/USDC metrics
-│   └── meta-tx-form.tsx    # Execute form
+│   ├── meta-tx-form.tsx    # Execute form
+│   └── ui/
+│       ├── card.tsx
+│       ├── input.tsx
+│       └── button.tsx
 ├── lib/
+│   ├── utils.ts
 │   ├── cronos.ts           # Chain + wagmi
 │   └── api.ts              # Backend calls
-├── app/globals.css
+├── .gitignore
+├── architecture.txt
+├── global.d.ts
+├── next-env.d.ts
 ├── next.config.mjs
+├── postcss.config.mjs
 ├── tailwind.config.ts
+├── tsconfig.json
 ├── package.json
+├── package-lock.json
 └── vercel.json

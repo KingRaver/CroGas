@@ -66,6 +66,22 @@ export interface FaucetResponse {
   message: string
 }
 
+export interface StoredTransaction {
+  txHash: string
+  from: string
+  to: string
+  value: string
+  gasUsed: string
+  priceUSDC: string
+  priority: string
+  timestamp: number
+}
+
+export interface HistoryResponse {
+  transactions: StoredTransaction[]
+  total: number
+}
+
 export const api = {
   // Health check
   getHealth: (): Promise<HealthResponse> => 
@@ -103,6 +119,21 @@ export const api = {
   // Get gas estimate
   getEstimate: (): Promise<EstimateResponse> =>
     fetch(`${API_BASE}/estimate`).then(r => r.json()),
+
+  // Get transaction history for address
+  getHistory: async (address: `0x${string}`, limit: number = 10): Promise<HistoryResponse> => {
+    try {
+      const response = await fetch(`${API_BASE}/meta/history/${address}?limit=${limit}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch history')
+      }
+      return response.json()
+    } catch (error) {
+      // Return empty history on error (backend may not have history yet)
+      console.warn('History fetch failed, returning empty:', error)
+      return { transactions: [], total: 0 }
+    }
+  },
 
   // Execute meta-transaction
   executeMetaTx: (payload: MetaTxPayload): Promise<MetaTxResponse> =>

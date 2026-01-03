@@ -1,8 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAccount } from 'wagmi'
-import { api } from '@/lib/api'
-import { Flame, Send, Clock, Rocket, Car, ExternalLink, Wallet, AlertCircle } from 'lucide-react'
+import { api, StoredTransaction } from '@/lib/api'
+import { Flame, Send, Clock, Rocket, Car, ExternalLink, Wallet, AlertCircle, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useMetaTx, getStatusMessage } from '@/hooks/useMetaTx'
 import { WalletModal } from '@/components/wallet-modal'
@@ -10,11 +10,76 @@ import { addNotification } from '@/components/notifications-dropdown'
 import { getSettings } from '@/components/settings-dropdown'
 import { CONTRACTS } from '@/lib/cronos'
 
+// localStorage key for transaction history
+const TX_HISTORY_KEY = 'crogas-tx-history'
+const MAX_TRANSACTIONS = 10
+
 interface RecentTx {
-  hash: string
+  txHash: string
+  from: string
   to: string
-  amount: string
-  explorerUrl?: string
+  priceUSDC: string
+  priority: string
+  timestamp: number
+  explorerUrl: string
+}
+
+// Helper to format address for display
+function formatAddress(address: string): string {
+  if (!address || address.length < 10) return address
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+// Helper to format timestamp
+function formatTimestamp(timestamp: number): string {
+  const now = Date.now()
+  const diff = now - timestamp
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return new Date(timestamp).toLocaleDateString()
+}
+
+// Load transactions from localStorage
+function loadLocalHistory(): RecentTx[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const stored = localStorage.getItem(TX_HISTORY_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (e) {
+    console.warn('Failed to load tx history from localStorage:', e)
+  }
+  return []
+}
+
+// Save transactions to localStorage
+function saveLocalHistory(txs: RecentTx[]) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(TX_HISTORY_KEY, JSON.stringify(txs.slice(0, MAX_TRANSACTIONS)))
+  } catch (e) {
+    console.warn('Failed to save tx history to localStorage:', e)
+  }
+}
+
+// Convert backend StoredTransaction to our RecentTx format
+function convertToRecentTx(tx: StoredTransaction): RecentTx {
+  return {
+    txHash: tx.txHash,
+    from: tx.from,
+    to: tx.to,
+    priceUSDC: tx.priceUSDC,
+    priority: tx.priority,
+    timestamp: tx.timestamp,
+    explorerUrl: `https://explorer.cronos.org/testnet/tx/${tx.txHash}`
+  }
 }
 
 export default function MetaTxForm() {
@@ -25,12 +90,44 @@ export default function MetaTxForm() {
   const [priority, setPriority] = useState<'slow' | 'normal' | 'fast'>('normal')
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [recentTxs, setRecentTxs] = useState<RecentTx[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
 
   // Load default gas tier from settings on mount
   useEffect(() => {
     const settings = getSettings()
     setPriority(settings.defaultGasTier)
   }, [])
+
+  // Load transaction history on mount and when address changes
+  const loadHistory = useCallback(async () => {
+    // First, load from localStorage for instant display
+    const localTxs = loadLocalHistory()
+    if (localTxs.length > 0) {
+      setRecentTxs(localTxs)
+    }
+
+    // Then try to fetch from backend if connected
+    if (isConnected && address) {
+      setIsLoadingHistory(true)
+      try {
+        const { transactions } = await api.getHistory(address, MAX_TRANSACTIONS)
+        if (transactions.length > 0) {
+          const converted = transactions.map(convertToRecentTx)
+          setRecentTxs(converted)
+          saveLocalHistory(converted)
+        }
+      } catch (e) {
+        console.warn('Failed to fetch history from backend:', e)
+        // Keep localStorage data as fallback
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+  }, [isConnected, address])
+
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
 
   const pricingTiers: Array<{
     value: 'slow' | 'normal' | 'fast'
@@ -63,7 +160,7 @@ export default function MetaTxForm() {
   ]
 
   const execute = async () => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       setIsWalletModalOpen(true)
       return
     }
@@ -98,16 +195,22 @@ export default function MetaTxForm() {
         message: `Tx: ${txResult.txHash.slice(0, 10)}...${txResult.txHash.slice(-8)}`,
       })
       
-      // Add to recent transactions
-      setRecentTxs(prev => [
-        { 
-          hash: `${txResult.txHash!.slice(0, 10)}...`, 
-          to: 'Contract', 
-          amount: pricingTiers.find(t => t.value === priority)?.price || '$0.01',
-          explorerUrl: `https://explorer.cronos.org/testnet/tx/${txResult.txHash}`
-        },
-        ...prev.slice(0, 4)
-      ])
+      // Add to recent transactions with actual target address
+      const newTx: RecentTx = {
+        txHash: txResult.txHash,
+        from: address,
+        to: target,
+        priceUSDC: txResult.quote?.priceUSDC || pricingTiers.find(t => t.value === priority)?.price.replace('$', '') || '0.01',
+        priority,
+        timestamp: Date.now(),
+        explorerUrl: `https://explorer.cronos.org/testnet/tx/${txResult.txHash}`
+      }
+      
+      setRecentTxs(prev => {
+        const updated = [newTx, ...prev].slice(0, MAX_TRANSACTIONS)
+        saveLocalHistory(updated)
+        return updated
+      })
     } else if (txResult.quote) {
       addNotification({
         type: 'info',
@@ -327,16 +430,33 @@ export default function MetaTxForm() {
       <div className="card-deco p-8 animate-fade-in" style={{ animationDelay: '150ms' }}>
         {/* Section Header */}
         <div className="text-center mb-8">
-          <h3 className="text-2xl display-font text-[#3f647e] tracking-wider mb-2">
-            Recent Transactions
-          </h3>
+          <div className="flex items-center justify-center gap-3">
+            <h3 className="text-2xl display-font text-[#3f647e] tracking-wider mb-2">
+              Recent Transactions
+            </h3>
+            {isConnected && (
+              <button
+                onClick={loadHistory}
+                disabled={isLoadingHistory}
+                className="p-1.5 text-[#688fad] hover:text-[#3f647e] transition-colors"
+                title="Refresh history"
+              >
+                <RefreshCw className={cn('w-4 h-4', isLoadingHistory && 'animate-spin')} />
+              </button>
+            )}
+          </div>
           <div className="divider-deco">
             <div className="divider-deco-icon" />
           </div>
         </div>
         
         <div className="space-y-3">
-          {recentTxs.length === 0 ? (
+          {isLoadingHistory && recentTxs.length === 0 ? (
+            <div className="text-center py-8 text-[#688fad]">
+              <div className="w-6 h-6 border-2 border-[#688fad]/30 border-t-[#688fad] rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm italic">Loading history...</p>
+            </div>
+          ) : recentTxs.length === 0 ? (
             <div className="text-center py-8 text-[#688fad]">
               <p className="text-sm italic">No transactions yet</p>
               <p className="text-xs mt-1">Execute a meta-transaction to see it here</p>
@@ -344,24 +464,29 @@ export default function MetaTxForm() {
           ) : (
             recentTxs.map((tx, i) => (
               <a 
-                key={i}
+                key={`${tx.txHash}-${i}`}
                 href={tx.explorerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-4 bg-white/60 border border-[#d9d9d9] hover:border-[#f6c25d] transition-all group cursor-pointer"
+                className="block p-4 bg-white/60 border border-[#d9d9d9] hover:border-[#f6c25d] transition-all group cursor-pointer"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between mb-2">
                   <code className="text-[#00b0b2] text-sm font-medium">
-                    {tx.hash}
+                    {formatAddress(tx.txHash)}
                   </code>
-                  <span className="text-[#688fad]">→</span>
-                  <span className="text-[#3f647e] font-medium">{tx.to}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#a52b36] font-semibold text-sm">
+                      ${tx.priceUSDC}
+                    </span>
+                    <ExternalLink className="w-4 h-4 text-[#d9d9d9] group-hover:text-[#f6c25d] transition-colors" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#a52b36] font-semibold">
-                    {tx.amount}
-                  </span>
-                  <ExternalLink className="w-4 h-4 text-[#d9d9d9] group-hover:text-[#f6c25d] transition-colors" />
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-[#688fad]">
+                    <span>To:</span>
+                    <code className="text-[#3f647e] font-medium">{formatAddress(tx.to)}</code>
+                  </div>
+                  <span className="text-[#688fad]">{formatTimestamp(tx.timestamp)}</span>
                 </div>
               </a>
             ))
@@ -375,6 +500,13 @@ export default function MetaTxForm() {
             <span className="text-sm uppercase tracking-wider">Awaiting new transactions</span>
           </div>
         </div>
+        
+        {/* Transaction count */}
+        {recentTxs.length > 0 && (
+          <p className="text-center text-xs text-[#688fad] mt-4">
+            Showing {recentTxs.length} of {MAX_TRANSACTIONS} max
+          </p>
+        )}
         
         {/* Decorative footer */}
         <div className="mt-6 flex justify-center">

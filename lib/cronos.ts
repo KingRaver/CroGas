@@ -54,7 +54,7 @@ export function createCronosConfig(): Config {
 // Contract addresses on Cronos Testnet
 export const CONTRACTS = {
   MINIMAL_FORWARDER: '0x523D5F604788a9cFC74CcF81F0DE5B3b5623635F' as const,
-  TEST_USDC: '0x38Bf87D7281A2F84c8ed5aF1410295f7BD4E20a1' as const,
+  TEST_USDC: '0xF94b01ec5Bdc9F77cB77d4Cb1d5036D0b3f79C92' as const,
   RELAYER_WALLET: '0xF40B9a42cD26166051455c23508C2EbA997da7e2' as const,
 }
 

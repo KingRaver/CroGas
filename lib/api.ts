@@ -72,12 +72,21 @@ export const api = {
     fetch(`${API_BASE}/health`).then(r => r.json()),
 
   // Request TestUSDC from faucet (POST /faucet/usdc with address in body)
-  requestFaucet: (address: `0x${string}`): Promise<FaucetResponse> => 
-    fetch(`${API_BASE}/faucet/usdc`, {
+  requestFaucet: async (address: `0x${string}`): Promise<FaucetResponse> => {
+    const response = await fetch(`${API_BASE}/faucet/usdc`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address })
-    }).then(r => r.json()),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to get TestUSDC')
+    }
+
+    return data
+  },
 
   // Get faucet balance
   getFaucetBalance: (address: `0x${string}`): Promise<{ balance: string }> =>

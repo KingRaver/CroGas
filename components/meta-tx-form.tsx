@@ -136,21 +136,12 @@ export default function MetaTxForm() {
     })
 
     try {
-      const response = await api.getFaucet(address)
-      if (response.ok) {
-        addNotification({
-          type: 'success',
-          title: 'Faucet Success',
-          message: '100 TestUSDC received!',
-        })
-      } else {
-        const data = await response.json()
-        addNotification({
-          type: 'error',
-          title: 'Faucet Error',
-          message: data.error || 'Failed to get TestUSDC',
-        })
-      }
+      const data = await api.requestFaucet(address)
+      addNotification({
+        type: 'success',
+        title: 'Faucet Success',
+        message: data.message || '100 TestUSDC received!',
+      })
     } catch (e: any) {
       addNotification({
         type: 'error',

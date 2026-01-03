@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export interface MetaTxPayload {
   request: {
@@ -60,14 +60,24 @@ export interface EstimateResponse {
   }
 }
 
+export interface FaucetResponse {
+  hash: string
+  amount: number
+  message: string
+}
+
 export const api = {
   // Health check
   getHealth: (): Promise<HealthResponse> => 
     fetch(`${API_BASE}/health`).then(r => r.json()),
 
-  // Get TestUSDC from faucet
-  getFaucet: (address: `0x${string}`) => 
-    fetch(`${API_BASE}/faucet/${address}`),
+  // Request TestUSDC from faucet (POST /faucet/usdc with address in body)
+  requestFaucet: (address: `0x${string}`): Promise<FaucetResponse> => 
+    fetch(`${API_BASE}/faucet/usdc`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address })
+    }).then(r => r.json()),
 
   // Get faucet balance
   getFaucetBalance: (address: `0x${string}`): Promise<{ balance: string }> =>
@@ -93,7 +103,6 @@ export const api = {
       body: JSON.stringify(payload)
     }).then(async r => {
       const data = await r.json()
-      // Handle 402 Payment Required
       if (r.status === 402) {
         return { ...data, error: 'Payment Required' }
       }

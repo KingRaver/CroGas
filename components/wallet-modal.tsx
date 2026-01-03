@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useConnect, useAccount, useDisconnect, useChainId, useSwitchChain, Connector } from 'wagmi'
-import { X, Wallet, Link2, ExternalLink, Copy, Check, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react'
+import { useConnect, useAccount, useDisconnect, useChainId, Connector } from 'wagmi'
+import { X, Wallet, Link2, ExternalLink, Copy, Check, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { cronosTestnet } from '@/lib/cronos'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -116,7 +115,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   Connect Wallet
                 </h2>
                 <p className="text-xs text-[#688fad] uppercase tracking-wider">
-                  Cronos Testnet (Chain 338)
+                  Cronos Testnet
                 </p>
               </div>
             </div>
@@ -126,17 +125,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
             >
               <X className="w-5 h-5 text-[#688fad]" />
             </button>
-          </div>
-        </div>
-
-        {/* Important Notice */}
-        <div className="px-6 pt-4">
-          <div className="p-3 border border-[#f6c25d] bg-[#f6c25d]/10 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-[#f6c25d] mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-[#3f647e]">
-              <strong>Important:</strong> Make sure your wallet is set to <strong>Cronos Testnet</strong> before connecting. 
-              If you're on Cronos Mainnet, you'll be prompted to switch.
-            </p>
           </div>
         </div>
 
@@ -194,8 +182,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
               <p className="text-sm text-[#a52b36]">
                 {error.message.includes('User rejected')
                   ? 'Connection cancelled by user'
-                  : error.message.includes('Chain not configured')
-                  ? 'Please switch your wallet to Cronos Testnet (Chain ID: 338)'
                   : error.message}
               </p>
             </div>
@@ -223,15 +209,12 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   )
 }
 
-// Connected wallet display component with chain switching
+// Connected wallet display component
 export function ConnectedWallet() {
   const { address, connector } = useAccount()
   const { disconnect } = useDisconnect()
   const chainId = useChainId()
-  const { switchChain, isPending: isSwitching, error: switchError } = useSwitchChain()
   const [copied, setCopied] = useState(false)
-
-  const isWrongChain = chainId !== cronosTestnet.id
 
   const copyAddress = () => {
     if (address) {
@@ -245,69 +228,20 @@ export function ConnectedWallet() {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`
   }
 
-  const handleSwitchChain = () => {
-    switchChain({ chainId: cronosTestnet.id })
-  }
-
   if (!address) return null
 
   return (
     <div className="card-glass p-4 animate-fade-in">
-      {/* Wrong Chain Warning */}
-      {isWrongChain && (
-        <div className="mb-4 p-3 border-2 border-[#a52b36] bg-[#a52b36]/10">
-          <div className="flex items-start gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-[#a52b36] flex-shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-[#a52b36]">Wrong Network</p>
-              <p className="text-xs text-[#a52b36]/80">
-                You're on Chain {chainId}. Please switch to Cronos Testnet (338).
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleSwitchChain}
-            disabled={isSwitching}
-            className="w-full py-2 bg-[#a52b36] text-white text-sm font-medium hover:bg-[#8a2430] transition-colors flex items-center justify-center gap-2"
-          >
-            {isSwitching ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Switching...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4" />
-                Switch to Cronos Testnet
-              </>
-            )}
-          </button>
-          {switchError && (
-            <p className="text-xs text-[#a52b36] mt-2">
-              {switchError.message.includes('User rejected')
-                ? 'Switch rejected. Please approve in your wallet.'
-                : 'Failed to switch. Try adding Cronos Testnet manually.'}
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={cn(
-            'w-2 h-2 rounded-full animate-pulse',
-            isWrongChain ? 'bg-[#a52b36]' : 'bg-[#879c7d]'
-          )} />
-          <span className={cn(
-            'text-xs uppercase tracking-wider font-semibold',
-            isWrongChain ? 'text-[#a52b36]' : 'text-[#879c7d]'
-          )}>
-            {isWrongChain ? 'Wrong Chain' : 'Connected'}
+          <div className="w-2 h-2 rounded-full bg-[#879c7d] animate-pulse" />
+          <span className="text-xs uppercase tracking-wider text-[#879c7d] font-semibold">
+            Connected
           </span>
         </div>
         <span className="text-xs text-[#688fad]">
-          Chain: {chainId} {chainId === cronosTestnet.id && '✓'}
+          Chain: {chainId}
         </span>
       </div>
 

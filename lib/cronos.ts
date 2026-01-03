@@ -59,10 +59,9 @@ export const CONTRACTS = {
 }
 
 // EIP-712 Domain for MinimalForwarder
-// CRITICAL: version must match the backend (meta.ts) - both use '1'
 export const FORWARDER_DOMAIN = {
   name: 'MinimalForwarder',
-  version: '1', // Must match backend and contract
+  version: '0.0.1',
   chainId: cronosTestnet.id,
   verifyingContract: CONTRACTS.MINIMAL_FORWARDER,
 } as const

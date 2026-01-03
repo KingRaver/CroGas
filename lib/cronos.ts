@@ -61,7 +61,7 @@ export const CONTRACTS = {
 // EIP-712 Domain for MinimalForwarder
 export const FORWARDER_DOMAIN = {
   name: 'MinimalForwarder',
-  version: '0.0.1',
+  version: '1',
   chainId: cronosTestnet.id,
   verifyingContract: CONTRACTS.MINIMAL_FORWARDER,
 } as const

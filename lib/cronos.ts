@@ -1,49 +1,55 @@
-import { createConfig, http } from 'wagmi'
+import { createConfig, http, type Config } from 'wagmi'
 import { cronosTestnet } from 'viem/chains'
 import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors'
 
 // WalletConnect Project ID - get yours at https://cloud.walletconnect.com
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
-if (!projectId) {
-  console.warn(
-    '⚠️ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set. WalletConnect will not work.'
-  )
-}
-
 // App metadata for WalletConnect
 const metadata = {
   name: 'CroGas - Agent Gas Station',
   description: 'Pay Cronos gas fees with USDC. No CRO required.',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://crogas.xyz',
+  url: 'https://crogas.xyz',
   icons: ['https://crogas.xyz/icon.png'],
 }
 
-export const cronosConfig = createConfig({
-  chains: [cronosTestnet],
-  connectors: [
-    // WalletConnect v2 - Primary focus for mobile + desktop
-    walletConnect({
-      projectId: projectId || '',
-      metadata,
-      showQrModal: true, // Shows the WalletConnect QR modal
-    }),
-    // MetaMask - Browser extension
-    injected({
-      target: 'metaMask',
-    }),
-    // Coinbase Wallet
-    coinbaseWallet({
-      appName: metadata.name,
-      appLogoUrl: metadata.icons[0],
-    }),
-    // NOTE: Removed generic injected() connector - it was causing duplicate MetaMask entries
-    // because it also detects MetaMask and registers it with a different connector ID
-  ],
-  transports: {
-    [cronosTestnet.id]: http('https://evm-t3.cronos.org'),
-  },
-})
+// Export config creation function for use in client components
+export function createCronosConfig(): Config {
+  if (!projectId) {
+    console.warn(
+      '⚠️ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set. WalletConnect will not work.'
+    )
+  }
+
+  return createConfig({
+    chains: [cronosTestnet],
+    connectors: [
+      // WalletConnect v2 - Primary focus for mobile + desktop
+      walletConnect({
+        projectId: projectId || '',
+        metadata: {
+          ...metadata,
+          url: typeof window !== 'undefined' ? window.location.origin : metadata.url,
+        },
+        showQrModal: true, // Shows the WalletConnect QR modal
+      }),
+      // MetaMask - Browser extension
+      injected({
+        target: 'metaMask',
+      }),
+      // Coinbase Wallet
+      coinbaseWallet({
+        appName: metadata.name,
+        appLogoUrl: metadata.icons[0],
+      }),
+      // NOTE: Removed generic injected() connector - it was causing duplicate MetaMask entries
+      // because it also detects MetaMask and registers it with a different connector ID
+    ],
+    transports: {
+      [cronosTestnet.id]: http('https://evm-t3.cronos.org'),
+    },
+  })
+}
 
 // Contract addresses on Cronos Testnet
 export const CONTRACTS = {

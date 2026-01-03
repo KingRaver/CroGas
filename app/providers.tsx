@@ -2,10 +2,13 @@
 
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cronosConfig } from '@/lib/cronos'
+import { createCronosConfig } from '@/lib/cronos'
 import { useState, type ReactNode } from 'react'
 
 export function Providers({ children }: { children: ReactNode }) {
+  // Create wagmi config inside component to avoid SSR issues with indexedDB
+  const [config] = useState(() => createCronosConfig())
+
   // Create QueryClient inside component to avoid SSR issues
   const [queryClient] = useState(
     () =>
@@ -24,7 +27,7 @@ export function Providers({ children }: { children: ReactNode }) {
   )
 
   return (
-    <WagmiProvider config={cronosConfig}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>

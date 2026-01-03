@@ -37,8 +37,8 @@ export const cronosConfig = createConfig({
       appName: metadata.name,
       appLogoUrl: metadata.icons[0],
     }),
-    // Generic injected (fallback for other wallets)
-    injected(),
+    // NOTE: Removed generic injected() connector - it was causing duplicate MetaMask entries
+    // because it also detects MetaMask and registers it with a different connector ID
   ],
   transports: {
     [cronosTestnet.id]: http('https://evm-t3.cronos.org'),

@@ -627,3 +627,57 @@ body {
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
+
+/* ============================================
+   WALLETCONNECT MODAL Z-INDEX FIX
+   ============================================ */
+
+/* Override WalletConnect modal z-index to appear above page content */
+w3m-modal,
+wcm-modal {
+  --w3m-z-index: 99999 !important;
+  --wcm-z-index: 99999 !important;
+}
+
+/* Target the WalletConnect modal container and overlays */
+.w3m-overlay,
+.wcm-overlay,
+[data-w3m-modal],
+[data-wcm-modal] {
+  z-index: 99999 !important;
+}
+
+/* WalletConnect v2 specific modal elements */
+wui-flex,
+wui-card,
+w3m-modal-container,
+wcm-modal-container {
+  z-index: 99999 !important;
+}
+
+/* Ensure the backdrop is also above page content */
+w3m-modal::part(overlay),
+wcm-modal::part(overlay) {
+  z-index: 99998 !important;
+}
+
+/* Target any dynamically created WalletConnect elements */
+div[class*="walletconnect"],
+div[class*="WalletConnect"],
+div[id*="walletconnect"],
+div[id*="WalletConnect"] {
+  z-index: 99999 !important;
+}
+
+/* Web3Modal specific overrides */
+.w3m-container,
+.wcm-container,
+.web3modal-modal-container,
+.web3modal-overlay {
+  z-index: 99999 !important;
+}
+
+/* Fix for any portal/dialog that WalletConnect might use */
+[role="dialog"][aria-modal="true"] {
+  z-index: 99999 !important;
+}

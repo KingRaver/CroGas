@@ -17,11 +17,11 @@ const WALLET_ICONS: Record<string, string> = {
   'MetaMask': '🦊',
   coinbaseWallet: '🔵',
   'Coinbase Wallet': '🔵',
-  injected: '💉',
+  injected: '👉',
 }
 
 const getWalletIcon = (connector: Connector) => {
-  return WALLET_ICONS[connector.id] || WALLET_ICONS[connector.name] || '👛'
+  return WALLET_ICONS[connector.id] || WALLET_ICONS[connector.name] || '💛'
 }
 
 const getWalletDescription = (connectorId: string) => {
@@ -55,25 +55,40 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     }
   }
 
-  // Filter out duplicate connectors and sort by priority
+  // Filter out duplicate connectors with robust deduplication
   const uniqueConnectors = connectors.reduce((acc, connector) => {
-    // Skip if we already have this connector type
+    // Skip if we already have this connector by ID
     if (acc.find(c => c.id === connector.id)) return acc
-    // Skip generic injected if we have MetaMask
-    if (connector.id === 'injected' && acc.find(c => c.id === 'metaMask')) return acc
+    
+    // Skip if we already have a connector with the same name (catches MetaMask duplicates)
+    if (acc.find(c => c.name === connector.name)) return acc
+    
+    // Skip generic injected if we have a specific wallet that matches
+    if (connector.id === 'injected' && acc.find(c => 
+      c.id === 'metaMask' || c.name === 'MetaMask'
+    )) return acc
+    
+    // Skip if this is MetaMask but we already have an injected connector named MetaMask
+    if (connector.id === 'metaMask' && acc.find(c => 
+      c.id === 'injected' && c.name === 'MetaMask'
+    )) return acc
+    
     return [...acc, connector]
   }, [] as Connector[])
 
   // Sort: WalletConnect first, then MetaMask, then others
   const sortedConnectors = uniqueConnectors.sort((a, b) => {
     const order = ['walletConnect', 'metaMask', 'coinbaseWallet', 'injected']
-    return order.indexOf(a.id) - order.indexOf(b.id)
+    const aIndex = order.indexOf(a.id)
+    const bIndex = order.indexOf(b.id)
+    // If not in order array, put at end
+    return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex)
   })
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -81,7 +96,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       />
       
       {/* Modal */}
-      <div className="relative bg-[#f8f6f0] border-2 border-[#f6c25d] shadow-2xl w-full max-w-md mx-4 animate-fade-in">
+      <div className="relative bg-[#f8f6f0] border-2 border-[#f6c25d] shadow-2xl w-full max-w-md mx-4 animate-fade-in z-[10000]">
         {/* Corner decorations */}
         <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-[#f6c25d]" />
         <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-[#f6c25d]" />

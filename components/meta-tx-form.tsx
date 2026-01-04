@@ -8,7 +8,6 @@ import { useMetaTx, getStatusMessage } from '@/hooks/useMetaTx'
 import { WalletModal } from '@/components/wallet-modal'
 import { addNotification } from '@/components/notifications-dropdown'
 import { getSettings } from '@/components/settings-dropdown'
-import { CONTRACTS } from '@/lib/cronos'
 
 // localStorage key for transaction history
 const TX_HISTORY_KEY = 'crogas-tx-history'
@@ -86,7 +85,7 @@ export default function MetaTxForm() {
   const { isConnected, address } = useAccount()
   const { signAndRelay, status, error, result, isLoading, reset } = useMetaTx()
   
-  const [target, setTarget] = useState('0x145863Eb42Cf62847A6Ca784e6416C1682b1b2Ae')
+  const [target, setTarget] = useState('')
   const [priority, setPriority] = useState<'slow' | 'normal' | 'fast'>('normal')
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [recentTxs, setRecentTxs] = useState<RecentTx[]>([])
@@ -243,7 +242,35 @@ export default function MetaTxForm() {
       addNotification({
         type: 'success',
         title: 'Faucet Success',
-        message: data.message || '100 TestUSDC received!',
+        message: data.message || '10 TestUSDC received!',
+      })
+    } catch (e: any) {
+      addNotification({
+        type: 'error',
+        title: 'Faucet Error',
+        message: e.message || 'Failed to contact faucet',
+      })
+    }
+  }
+
+  const getCRO = async () => {
+    if (!isConnected || !address) {
+      setIsWalletModalOpen(true)
+      return
+    }
+
+    addNotification({
+      type: 'pending',
+      title: 'Requesting CRO',
+      message: 'Contacting faucet...',
+    })
+
+    try {
+      const data = await api.requestCroFaucet(address)
+      addNotification({
+        type: 'success',
+        title: 'Faucet Success',
+        message: data.message || '0.1 CRO received!',
       })
     } catch (e: any) {
       addNotification({
@@ -308,7 +335,7 @@ export default function MetaTxForm() {
             <input
               value={target}
               onChange={(e) => setTarget(e.target.value)}
-              placeholder="0x... Contract Address"
+              placeholder="0x... Enter contract address to test"
               className="input-deco w-full rounded-none"
               disabled={isLoading}
             />
@@ -353,21 +380,36 @@ export default function MetaTxForm() {
           </div>
           
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 pt-4">
+          <div className="space-y-3 pt-4">
+            {/* Faucet Buttons Row */}
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                className={cn(
+                  "btn-outline-elegant h-12 flex items-center justify-center gap-2 text-sm",
+                  isLoading && 'opacity-50 cursor-not-allowed'
+                )}
+                onClick={getTestUSDC}
+                disabled={isLoading}
+              >
+                <Flame className="w-4 h-4" />
+                Get 10 USDC
+              </button>
+              <button 
+                className={cn(
+                  "btn-outline-elegant h-12 flex items-center justify-center gap-2 text-sm",
+                  isLoading && 'opacity-50 cursor-not-allowed'
+                )}
+                onClick={getCRO}
+                disabled={isLoading}
+              >
+                <Flame className="w-4 h-4" />
+                Get 0.1 CRO
+              </button>
+            </div>
+            {/* Execute Button */}
             <button 
               className={cn(
-                "btn-outline-elegant h-14 flex items-center justify-center gap-2",
-                isLoading && 'opacity-50 cursor-not-allowed'
-              )}
-              onClick={getTestUSDC}
-              disabled={isLoading}
-            >
-              <Flame className="w-5 h-5" />
-              Get TestUSDC
-            </button>
-            <button 
-              className={cn(
-                "btn-gold h-14 flex items-center justify-center gap-2",
+                "btn-gold w-full h-14 flex items-center justify-center gap-2",
                 isLoading && 'opacity-70 cursor-wait'
               )}
               onClick={execute}

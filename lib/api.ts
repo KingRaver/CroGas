@@ -104,6 +104,23 @@ export const api = {
     return data
   },
 
+  // Request CRO from faucet (POST /faucet/cro with address in body)
+requestCroFaucet: async (address: `0x${string}`): Promise<FaucetResponse> => {
+  const response = await fetch(`${API_BASE}/faucet/cro`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address })
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to get CRO')
+  }
+
+  return data
+},
+
   // Get faucet balance
   getFaucetBalance: (address: `0x${string}`): Promise<{ balance: string }> =>
     fetch(`${API_BASE}/faucet/balance/${address}`).then(r => r.json()),

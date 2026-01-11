@@ -7,9 +7,9 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
 // App metadata for WalletConnect
 const metadata = {
-  name: 'CroGas - Agentic Gas Station',
+  name: 'AutoDrip - Agentic Gas Station',
   description: 'Pay Cronos gas fees with USDC. No CRO required.',
-  url: 'https://crogas.xyz',
+  url: 'https://autodrip.vercel.app/',
   icons: ['https://crogas.xyz/icon.png'],
 }
 

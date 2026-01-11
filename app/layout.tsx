@@ -3,7 +3,7 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'CroGas - Agent Gas Station',
+  title: 'AutoDrip - Gas Station',
   description: 'Pay Cronos gas with USDC. x402 protocol.',
 }
 
